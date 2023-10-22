@@ -1,5 +1,97 @@
 #include "main.h"
+
 using namespace pros;
+
+/*****************************************
+ * 
+ * 
+ * 
+ *   SETUP
+ * 
+ * 
+ * 
+******************************************/
+
+Motor FL(3, E_MOTOR_GEARSET_06, 1);
+Motor FR(6, E_MOTOR_GEARSET_06, 0);
+Motor BL(10, E_MOTOR_GEARSET_06, 1);
+Motor BR(5, E_MOTOR_GEARSET_06, 0);
+Motor TL(8, E_MOTOR_GEARSET_06, 0);
+Motor TR(4, E_MOTOR_GEARSET_06, 1);
+Motor CL(17, E_MOTOR_GEARSET_18, 1);
+Motor CR(18, E_MOTOR_GEARSET_18, 1);
+
+MotorGroup leftMotors({FL, BL, TL});
+MotorGroup rightMotors({FR, BR, TR});
+
+Controller Controller1(CONTROLLER_MASTER);
+Controller Controller2(CONTROLLER_PARTNER);
+
+Imu Inr(16);
+
+lemlib::Drivetrain_t drivetrain {
+	&leftMotors,
+	&rightMotors,
+	10, // distance between front wheels
+	3.25, // wheel diameter
+	360 // wheel rpm (gearing * motor rpm)
+};
+
+// forward/backward PID
+lemlib::ChassisController_t lateralController {
+    8, // kP
+    30, // kD
+    1, // smallErrorRange
+    100, // smallErrorTimeout
+    3, // largeErrorRange
+    500, // largeErrorTimeout
+    5 // slew rate
+};
+ 
+// turning PID
+lemlib::ChassisController_t angularController {
+    4, // kP
+    40, // kD
+    1, // smallErrorRange
+    100, // smallErrorTimeout
+    3, // largeErrorRange
+    500, // largeErrorTimeout
+    3 // slew rate
+};
+
+// odometry struct
+lemlib::OdomSensors_t sensors {
+	nullptr, //vertical tracking wheel 1
+	nullptr, //vertical tracking wheel 2
+	nullptr,
+    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
+    &Inr // inertial sensor
+};
+
+// create the chassis
+lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
+
+/*****************************************
+ * 
+ * 
+ * 
+ *   CUSTOM FUNCTIONS
+ * 
+ * 
+ * 
+******************************************/
+
+
+
+/*****************************************
+ * 
+ * 
+ * 
+ *   VEX BUILT IN CODE
+ * 
+ * 
+ * 
+******************************************/
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -67,70 +159,4 @@ void opcontrol() {
     CL.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
     CR.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
 }
-
-/*************************/
-/*  NON VEX CODE 		 */
-/*************************/
-
-// Setup
-Motor FL(3, E_MOTOR_GEARSET_06, 1);
-Motor FR(6, E_MOTOR_GEARSET_06, 0);
-Motor BL(10, E_MOTOR_GEARSET_06, 1);
-Motor BR(5, E_MOTOR_GEARSET_06, 0);
-Motor TL(8, E_MOTOR_GEARSET_06, 0);
-Motor TR(4, E_MOTOR_GEARSET_06, 1);
-Motor CL(17, E_MOTOR_GEARSET_18, 1);
-Motor CR(18, E_MOTOR_GEARSET_18, 1);
-
-MotorGroup leftMotors({FL, BL, TL});
-MotorGroup rightMotors({FR, BR, TR});
-
-Controller Controller1(CONTROLLER_MASTER);
-Controller Controller1(CONTROLLER_PARTNER);
-
-Imu Inr(16);
-
-lemlib::Drivetrain_t drivetrain {
-	&leftMotors,
-	&rightMotors,
-	10, // distance between front wheels
-	3.25, // wheel diameter
-	360 // wheel rpm (gearing * motor rpm)
-};
-
-// forward/backward PID
-lemlib::ChassisController_t lateralController {
-    8, // kP
-    30, // kD
-    1, // smallErrorRange
-    100, // smallErrorTimeout
-    3, // largeErrorRange
-    500, // largeErrorTimeout
-    5 // slew rate
-};
- 
-// turning PID
-lemlib::ChassisController_t angularController {
-    4, // kP
-    40, // kD
-    1, // smallErrorRange
-    100, // smallErrorTimeout
-    3, // largeErrorRange
-    500, // largeErrorTimeout
-    3 // slew rate
-};
-
-// odometry struct
-lemlib::OdomSensors_t sensors {
-	nullptr, //vertical tracking wheel 1
-	nullptr, //vertical tracking wheel 2
-	nullptr,
-    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
-    &Inr // inertial sensor
-};
-
-// create the chassis
-lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
-
-
 
