@@ -18,11 +18,15 @@ Motor BL(10, E_MOTOR_GEARSET_06, 1);
 Motor BR(5, E_MOTOR_GEARSET_06, 0);
 Motor TL(8, E_MOTOR_GEARSET_06, 0);
 Motor TR(4, E_MOTOR_GEARSET_06, 1);
-Motor CL(17, E_MOTOR_GEARSET_18, 1);
-Motor CR(18, E_MOTOR_GEARSET_18, 1);
+Motor INT(17, E_MOTOR_GEARSET_18, 1);
+Motor CL(18, E_MOTOR_GEARSET_18, 1);
+Motor CR(19, E_MOTOR_GEARSET_18, 1);
 
 MotorGroup leftMotors({FL, BL, TL});
 MotorGroup rightMotors({FR, BR, TR});
+
+ADIDigitalOut rightWing('A');
+ADIDigitalOut leftWing('B');
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -81,7 +85,129 @@ lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensor
  * 
 ******************************************/
 
+void overheatWarning(Motor motor) {
+    if (motor.get_temperature() >= 74) {
+        Controller1.set_text(2, 8, "OVERHEAT");
+        Controller1.rumble("......");
+        delay(400);
 
+    }
+}
+
+void driverControl() {
+
+	delay(50);
+
+	Controller1.set_text(1,1,"Drivecontrol started");
+
+    // Variables
+    float driveSpeed = .9;
+    float turnSpeed = .4;
+	bool leftWingOut = false;
+	bool rightWingOut = false;
+	bool cataMotorOn = false;
+
+	//chassis.motorsStop();
+
+	FL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	FR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	BL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	BR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	TL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+	TR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+
+	/**
+	 * BUTTON INPUT SYSTEM
+	 */
+	
+
+	while (true)
+	{
+		//void controllerScreenSetupEMU();
+
+		// ******************************************
+		// CONTROLLER 1							   //
+		// ******************************************
+
+/**
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
+			if (cataMotorOn == false) {
+				CL.move_velocity(70);
+				cataMotorOn = true;
+			}
+			else {
+				CL.move_velocity(0);
+				cataMotorOn = false;
+			}
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
+			if (leftWingOut == false) {
+				leftWing.set_value(1);
+				leftWingOut = true;
+			}
+			else {
+				leftWing.set_value(0);
+				leftWingOut = false;
+			}
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L1)){
+			if (rightWingOut == false) {
+				rightWing.set_value(1);
+				rightWingOut = true;
+			}
+			else {
+				rightWing.set_value(0);
+				rightWingOut = false;
+			}
+		}
+
+		if (Controller1.get_digital(E_CONTROLLER_DIGITAL_R2)){
+			INT.move_velocity(-127);
+		}
+		else if (Controller1.get_digital(E_CONTROLLER_DIGITAL_R1)){
+			INT.move(127);
+		} 
+		else {
+			INT.move(0);
+		}
+		*/
+
+		// Simple linear drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
+		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
+
+		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
+
+		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 600);
+
+		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 600);
+
+		if (left > 600) {left = 600;} else if (left < -600) {left = -600;}
+		if (right > 600) {right = 600;} else if (right < -600) {right = -600;}
+		
+		FL.move_velocity(left);
+		TL.move_velocity(left);
+		BL.move_velocity(left);
+		FR.move_velocity(right);
+		TR.move_velocity(right);
+		BR.move_velocity(right);   
+
+		overheatWarning(FL);
+        overheatWarning(TL);
+        overheatWarning(BL);
+        overheatWarning(FR);
+        overheatWarning(TR);
+        overheatWarning(BR);
+        overheatWarning(CL);
+        overheatWarning(CR);
+        overheatWarning(INT);
+        
+
+		pros::delay(20);
+
+	}
+}
 
 /*****************************************
  * 
@@ -150,13 +276,6 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	FL.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    FR.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    BL.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    BR.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    TL.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    TR.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    CL.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
-    CR.set_encoder_units(E_MOTOR_ENCODER_DEGREES);
+	driverControl();
 }
 
