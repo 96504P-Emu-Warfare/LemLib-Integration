@@ -18,6 +18,7 @@ Motor BL(10, E_MOTOR_GEARSET_06, 1);
 Motor BR(5, E_MOTOR_GEARSET_06, 0);
 Motor TL(8, E_MOTOR_GEARSET_06, 0);
 Motor TR(4, E_MOTOR_GEARSET_06, 1);
+
 Motor INT(17, E_MOTOR_GEARSET_18, 1);
 Motor CL(18, E_MOTOR_GEARSET_18, 1);
 Motor CR(19, E_MOTOR_GEARSET_18, 1);
@@ -30,6 +31,9 @@ ADIDigitalOut leftWing('B');
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
+
+Optical OPT(12);
+ADIEncoder ENC('C', 'D', false);
 
 Imu Inr(16);
 
@@ -65,10 +69,10 @@ lemlib::ChassisController_t angularController {
 
 // odometry struct
 lemlib::OdomSensors_t sensors {
-	nullptr, //vertical tracking wheel 1
-	nullptr, //vertical tracking wheel 2
-	nullptr,
-    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
+	nullptr, // vertical tracking wheel 1
+	nullptr, // vertical tracking wheel 2
+	nullptr, // horizontall tracking wheel 1 (add later)
+    nullptr, // horizontal tracking wheel 2
     &Inr // inertial sensor
 };
 
@@ -92,6 +96,38 @@ void overheatWarning(Motor motor) {
         delay(400);
 
     }
+}
+
+bool triballInCata() {
+    double hue = OPT.get_hue();
+    if (OPT.get_proximity() < 50 && hue > 0 && hue < 359) {
+        return true;
+    }
+    return false;
+}
+
+void screenDisplay() {
+    while (true) {
+        lemlib::Pose pose = chassis.getPose(); 
+        pros::lcd::print(0, "x: %f", pose.x); 
+        pros::lcd::print(1, "y: %f", pose.y); 
+        pros::lcd::print(2, "heading: %f", pose.theta); 
+        pros::delay(20);
+    }
+}
+
+/*****************************************
+ * 
+ * 
+ * 
+ *   AUTONOMOUS AND DRIVER CONTROL
+ * 
+ * 
+ * 
+******************************************/
+
+void sixBallBlue() {
+    return;
 }
 
 void driverControl() {
@@ -124,6 +160,14 @@ void driverControl() {
 	while (true)
 	{
 		//void controllerScreenSetupEMU();
+
+        // ******************************************
+		// ROBOT FUNCTIONS						   //
+		// ******************************************
+
+        if (triballInCata()) {
+            //fire the cata
+        }
 
 		// ******************************************
 		// CONTROLLER 1							   //
@@ -226,9 +270,9 @@ void driverControl() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	chassis.calibrate();
+	//chassis.calibrate();
 	lcd::initialize();
-	lcd::set_text(1, "Hello PROS User!");
+    selector::init();
 }
 
 /**
@@ -260,7 +304,17 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+    pros::Task screenTask(screenDisplay);
+
+    if(selector::auton == 1){} // Red 1
+    if(selector::auton == 1){} // Red 2
+    if(selector::auton == 1){} // Red 3
+    if(selector::auton == 1){} // Blue 1
+    if(selector::auton == 1){} // Blue 2
+    if(selector::auton == 1){} // Blue 3
+    if(selector::auton == 1){} // Skills
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
