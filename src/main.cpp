@@ -103,7 +103,7 @@ bool autoFireOn;
 
 bool triballOnKicker() {
     double hue1 = OPT1.get_hue();
-    if (OPT1.get_proximity() < 50 && hue > 0 && hue < 359) {
+    if (OPT1.get_proximity() < 50 && hue1 > 0 && hue1 < 359) {
         return true;
     }
     return false;
@@ -111,21 +111,21 @@ bool triballOnKicker() {
 
 bool triballInCata() {
 	double hue2 = OPT2.get_hue();
-	if (OPT1.get_proximity() < 50 && hue > 0 && hue < 359) {
+	if (OPT1.get_proximity() < 50 && hue2 > 0 && hue2 < 359) {
         return true;
     }
     return false;
 }
 
 void readyCata() {
-	while (OPT2.get_distance() > 50) {
+	while (OPT2.get_proximity() > 50) {
 		CR.move_velocity(70);
 	}
 	CR.move_velocity(0);
 }
 
 void fireCata() {
-	while (OPT.get_distance() < 80) {
+	while (OPT2.get_proximity() < 80) {
 		CR.move_velocity(100);
 	}
 	CR.move_velocity(0);
