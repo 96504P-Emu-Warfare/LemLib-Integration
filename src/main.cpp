@@ -32,7 +32,8 @@ ADIDigitalOut leftWing('B');
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
 
-Optical OPT(12);
+Optical OPT1(12);
+Optical OPT2(13);
 ADIEncoder ENC('C', 'D', false);
 
 Imu Inr(16);
@@ -98,12 +99,36 @@ void overheatWarning(Motor motor) {
     }
 }
 
-bool triballInCata() {
-    double hue = OPT.get_hue();
-    if (OPT.get_proximity() < 50 && hue > 0 && hue < 359) {
+bool autoFireOn;
+
+bool triballOnKicker() {
+    double hue1 = OPT1.get_hue();
+    if (OPT1.get_proximity() < 50 && hue > 0 && hue < 359) {
         return true;
     }
     return false;
+}
+
+bool triballInCata() {
+	double hue2 = OPT2.get_hue();
+	if (OPT1.get_proximity() < 50 && hue > 0 && hue < 359) {
+        return true;
+    }
+    return false;
+}
+
+void readyCata() {
+	while (OPT2.get_distance() > 50) {
+		CR.move_velocity(70);
+	}
+	CR.move_velocity(0);
+}
+
+void fireCata() {
+	while (OPT.get_distance() < 80) {
+		CR.move_velocity(100);
+	}
+	CR.move_velocity(0);
 }
 
 void screenDisplay() {
@@ -132,6 +157,8 @@ void sixBallBlue() {
 
 void driverControl() {
 
+	readyCata();
+
 	delay(50);
 
 	Controller1.set_text(1,1,"Drivecontrol started");
@@ -152,6 +179,9 @@ void driverControl() {
 	TL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 	TR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 
+	CL.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
 	/**
 	 * BUTTON INPUT SYSTEM
 	 */
@@ -165,9 +195,13 @@ void driverControl() {
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
 
-        if (triballInCata()) {
-            //fire the cata
-        }
+        if (autoFireOn) {
+			readyCata();
+
+			if (triballInCata() || triballOnKicker()) {
+				fireCata();
+			}
+		}
 
 		// ******************************************
 		// CONTROLLER 1							   //
@@ -273,6 +307,13 @@ void initialize() {
 	//chassis.calibrate();
 	lcd::initialize();
     selector::init();
+
+	while (true) {
+		pros::lcd::print(0, "hue: %f", OPT1.get_hue()); 
+        pros::lcd::print(1, "distance: %f", OPT1.get_proximity()); 
+        pros::lcd::print(2, "RGB: %f", OPT1.get_rgb()); 
+        pros::delay(20);
+	}
 }
 
 /**
