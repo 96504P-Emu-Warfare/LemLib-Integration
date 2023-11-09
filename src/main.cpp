@@ -91,11 +91,10 @@ lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensor
 ******************************************/
 
 void overheatWarning(Motor motor) {
-    if (motor.get_temperature() >= 74) {
+    if (motor.get_port() > 0 && motor.get_temperature() >= 74) {
         Controller1.set_text(2, 8, "OVERHEAT");
         Controller1.rumble("......");
         delay(400);
-
     }
 }
 
@@ -103,7 +102,7 @@ bool autoFireOn;
 
 bool triballOnKicker() {
     double hue1 = OPT1.get_hue();
-    if (OPT1.get_proximity() < 50 && hue1 > 0 && hue1 < 359) {
+    if (hue1 > 80 && hue1 < 100) {
         return true;
     }
     return false;
@@ -111,33 +110,48 @@ bool triballOnKicker() {
 
 bool triballInCata() {
 	double hue2 = OPT2.get_hue();
-	if (OPT1.get_proximity() < 50 && hue2 > 0 && hue2 < 359) {
+	if (hue2 > 80 && hue2 < 100) {
         return true;
     }
     return false;
 }
 
 void readyCata() {
-	while (OPT2.get_proximity() > 50) {
+	while (OPT2.get_proximity() < 230) {
 		CR.move_velocity(70);
+		Controller1.set_text(0,0, "Cata readying    ");
 	}
+	delay(100);
 	CR.move_velocity(0);
+	Controller1.set_text(0,0, "Cata ready       ");
+	
 }
 
 void fireCata() {
-	while (OPT2.get_proximity() < 80) {
+	while (OPT2.get_proximity() > 200) {
 		CR.move_velocity(100);
+		Controller1.set_text(0,0, "Cata firing      ");
 	}
 	CR.move_velocity(0);
+	delay(100);
+	Controller1.set_text(0,0, "Cata fired      ");
 }
 
-void screenDisplay() {
+void screenDisplay1() {
     while (true) {
         lemlib::Pose pose = chassis.getPose(); 
         pros::lcd::print(0, "x: %f", pose.x); 
         pros::lcd::print(1, "y: %f", pose.y); 
         pros::lcd::print(2, "heading: %f", pose.theta); 
         pros::delay(20);
+    }
+}
+
+void screenDisplay2() {
+    while (true) {
+        pros::lcd::print(0, "hue: %f", OPT2.get_hue()); 
+		pros::lcd::print(1, "distance: %d", OPT2.get_proximity()); 
+		pros::delay(20);
     }
 }
 
@@ -151,17 +165,131 @@ void screenDisplay() {
  * 
 ******************************************/
 
-void sixBallBlue() {
+void blueSixBall() {
     return;
 }
 
-void driverControl() {
+void redNearsideWPRisky() {
+	chassis.setPose(-44,-59, 45);
+	leftWing.set_value(1);
+	chassis.moveTo(-56, -50, 2000);
+	chassis.turnTo(-18, -16, 1000);
+	chassis.moveTo(-24, -12, 4000);
+	chassis.moveTo(-43, -12, 2000);
+	INT.move_velocity(200);
+	chassis.moveTo(26, -3, 3000);
+	INT.move_velocity(-200);
+	chassis.moveTo(-1, -7, 3000);
+	INT.move_velocity(200);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(-5, -46, 4000);
+}
+
+void skills() {
+	int triballs = 0;
+	chassis.setPose(-43, -57, 0);
+	chassis.moveTo(-52, -57, 1000);
+	chassis.turnTo(46, -3, 1000);
+	while (triballs < 44) {
+		readyCata();
+		fireCata();
+		triballs++;
+	}
+	chassis.moveTo(48, -54, 6000);
+	chassis.moveTo(62, -41, 1000);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(60, -31, 1000);
+	chassis.moveTo(60, -40, 1000, 50);
+	chassis.moveTo(60, -31, 200, 1000);
+
+}
+
+/*****************************************
+ * 
+ * 
+ * 
+ *   VEX BUILT IN CODE
+ * 
+ * 
+ * 
+******************************************/
+
+/**
+ * Runs initialization code. This occurs as soon as the program is started.
+ *
+ * All other competition modes are blocked by initialize; it is recommended
+ * to keep execution time for this mode under a few seconds.
+ */
+void initialize() {
+	chassis.calibrate();
+	lcd::initialize();
+    selector::init();
+	OPT1.set_led_pwm(30);
+	OPT2.set_led_pwm(30);
+}
+
+/**
+ * Runs while the robot is in the disabled state of Field Management System or
+ * the VEX Competition Switch, following either autonomous or opcontrol. When
+ * the robot is enabled, this task will exit.
+ */
+void disabled() {}
+
+/**
+ * Runs after initialize(), and before autonomous when connected to the Field
+ * Management System or the VEX Competition Switch. This is intended for
+ * competition-specific initialization routines, such as an autonomous selector
+ * on the LCD.
+ *
+ * This task will exit when the robot is enabled and autonomous or opcontrol
+ * starts.
+ */
+void competition_initialize() {}
+
+/**
+ * Runs the user autonomous code. This function will be started in its own task
+ * with the default priority and stack size whenever the robot is enabled via
+ * the Field Management System or the VEX Competition Switch in the autonomous
+ * mode. Alternatively, this function may be called in initialize or opcontrol
+ * for non-competition testing purposes.
+ *
+ * If the robot is disabled or communications is lost, the autonomous task
+ * will be stopped. Re-enabling the robot will restart the task, not re-start it
+ * from where it left off.
+ */
+void autonomous() {
+
+    if(selector::auton == 1){} // Red 1
+    if(selector::auton == 1){} // Red 2
+    if(selector::auton == 1){redNearsideWPRisky();} // Red 3
+    if(selector::auton == 1){} // Blue 1
+    if(selector::auton == 1){} // Blue 2
+    if(selector::auton == 1){} // Blue 3
+    if(selector::auton == 1){skills();} // Skills
+}
+
+/**
+ * Runs the operator control code. This function will be started in its own task
+ * with the default priority and stack size whenever the robot is enabled via
+ * the Field Management System or the VEX Competition Switch in the operator
+ * control mode.
+ *
+ * If no competition control is connected, this function will run immediately
+ * following initialize().
+ *
+ * If the robot is disabled or communications is lost, the
+ * operator control task will be stopped. Re-enabling the robot will restart the
+ * task, not resume it from where it left off.
+ */
+void opcontrol() {
+
+	Task controllerScreen(screenDisplay2);
 
 	readyCata();
 
-	delay(50);
-
-	Controller1.set_text(1,1,"Drivecontrol started");
+	Controller1.set_text(1,0,"Drivecontrol started");
 
     // Variables
     float driveSpeed = .9;
@@ -187,13 +315,13 @@ void driverControl() {
 	 */
 	
 
-	while (true)
-	{
-		//void controllerScreenSetupEMU();
+	while (true) {
 
         // ******************************************
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
+
+		autoFireOn = true;
 
         if (autoFireOn) {
 			readyCata();
@@ -207,16 +335,35 @@ void driverControl() {
 		// CONTROLLER 1							   //
 		// ******************************************
 
-/**
+
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (cataMotorOn == false) {
-				CL.move_velocity(70);
+				CL.move_velocity(90);
 				cataMotorOn = true;
 			}
 			else {
 				CL.move_velocity(0);
 				cataMotorOn = false;
 			}
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_B)) {
+			if (autoFireOn == true) {
+				autoFireOn = false;
+			}
+			else {autoFireOn = true;}
+		}
+
+		// For tuning lateral PID
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
+			chassis.setPose(0,0,0);
+			chassis.moveTo(10, 0, 5000);
+		}
+
+		// For tuning angular PID
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
+			chassis.setPose(0,0,0);
+			chassis.turnTo(30, 0, 5000);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
@@ -250,7 +397,6 @@ void driverControl() {
 		else {
 			INT.move(0);
 		}
-		*/
 
 		// Simple linear drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
 		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
@@ -270,7 +416,7 @@ void driverControl() {
 		FR.move_velocity(right);
 		TR.move_velocity(right);
 		BR.move_velocity(right);   
-
+		/**
 		overheatWarning(FL);
         overheatWarning(TL);
         overheatWarning(BL);
@@ -280,97 +426,10 @@ void driverControl() {
         overheatWarning(CL);
         overheatWarning(CR);
         overheatWarning(INT);
-        
+        */
 
 		pros::delay(20);
 
 	}
-}
-
-/*****************************************
- * 
- * 
- * 
- *   VEX BUILT IN CODE
- * 
- * 
- * 
-******************************************/
-
-/**
- * Runs initialization code. This occurs as soon as the program is started.
- *
- * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
- */
-void initialize() {
-	//chassis.calibrate();
-	lcd::initialize();
-    selector::init();
-
-	while (true) {
-		pros::lcd::print(0, "hue: %f", OPT1.get_hue()); 
-        pros::lcd::print(1, "distance: %f", OPT1.get_proximity()); 
-        pros::lcd::print(2, "RGB: %f", OPT1.get_rgb()); 
-        pros::delay(20);
-	}
-}
-
-/**
- * Runs while the robot is in the disabled state of Field Management System or
- * the VEX Competition Switch, following either autonomous or opcontrol. When
- * the robot is enabled, this task will exit.
- */
-void disabled() {}
-
-/**
- * Runs after initialize(), and before autonomous when connected to the Field
- * Management System or the VEX Competition Switch. This is intended for
- * competition-specific initialization routines, such as an autonomous selector
- * on the LCD.
- *
- * This task will exit when the robot is enabled and autonomous or opcontrol
- * starts.
- */
-void competition_initialize() {}
-
-/**
- * Runs the user autonomous code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the autonomous
- * mode. Alternatively, this function may be called in initialize or opcontrol
- * for non-competition testing purposes.
- *
- * If the robot is disabled or communications is lost, the autonomous task
- * will be stopped. Re-enabling the robot will restart the task, not re-start it
- * from where it left off.
- */
-void autonomous() {
-    pros::Task screenTask(screenDisplay);
-
-    if(selector::auton == 1){} // Red 1
-    if(selector::auton == 1){} // Red 2
-    if(selector::auton == 1){} // Red 3
-    if(selector::auton == 1){} // Blue 1
-    if(selector::auton == 1){} // Blue 2
-    if(selector::auton == 1){} // Blue 3
-    if(selector::auton == 1){} // Skills
-}
-
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
-void opcontrol() {
-	driverControl();
 }
 
