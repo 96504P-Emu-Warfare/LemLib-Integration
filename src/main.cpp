@@ -43,7 +43,8 @@ lemlib::Drivetrain_t drivetrain {
 	&rightMotors,
 	10, // distance between front wheels
 	3.25, // wheel diameter
-	360 // wheel rpm (gearing * motor rpm)
+	360, // wheel rpm (gearing * motor rpm)
+	2 // chasePower
 };
 
 // forward/backward PID
@@ -127,9 +128,9 @@ void readyCata() {
 	
 }
 
-void fireCata() {
+void fireCata(int cataSpeed = 80) {
 	while (OPT2.get_proximity() > 200) {
-		CR.move_velocity(100);
+		CR.move_velocity(cataSpeed);
 		Controller1.set_text(0,0, "Cata firing      ");
 	}
 	CR.move_velocity(0);
@@ -160,6 +161,7 @@ void screenDisplay2() {
  * 
  * 
  *   AUTONOMOUS AND DRIVER CONTROL
+ * 	 (Use https://path.jerryio.com/ )
  * 
  * 
  * 
@@ -170,39 +172,40 @@ void blueSixBall() {
 }
 
 void redNearsideWPRisky() {
-	chassis.setPose(-44,-59, 45);
+	chassis.setPose(-44,-59, -45);
 	leftWing.set_value(1);
-	chassis.moveTo(-56, -50, 2000);
+	chassis.moveTo(-56, -50, 0, 2000);
+	leftWing.set_value(0);
 	chassis.turnTo(-18, -16, 1000);
-	chassis.moveTo(-24, -12, 4000);
-	chassis.moveTo(-43, -12, 2000);
+	chassis.moveTo(-24, -12, -90, 4000);
+	chassis.moveTo(-43, -12, -90, 2000);
 	INT.move_velocity(200);
-	chassis.moveTo(26, -3, 3000);
+	chassis.moveTo(26, -3, 80, 3000);
 	INT.move_velocity(-200);
-	chassis.moveTo(-1, -7, 3000);
+	chassis.moveTo(-1, -7, 90, 3000);
 	INT.move_velocity(200);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(-5, -46, 4000);
+	chassis.moveTo(-5, -46, 180, 4000);
 }
 
 void skills() {
 	int triballs = 0;
-	chassis.setPose(-43, -57, 0);
-	chassis.moveTo(-52, -57, 1000);
+	chassis.setPose(-43, -57, -90);
+	chassis.moveTo(-52, -57, 45, 1000);
 	chassis.turnTo(46, -3, 1000);
 	while (triballs < 44) {
 		readyCata();
-		fireCata();
+		fireCata(100);
 		triballs++;
 	}
-	chassis.moveTo(48, -54, 6000);
-	chassis.moveTo(62, -41, 1000);
+	chassis.moveTo(48, -54, 90, 6000);
+	chassis.moveTo(62, -41, 0, 1000);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(60, -31, 1000);
-	chassis.moveTo(60, -40, 1000, 50);
-	chassis.moveTo(60, -31, 200, 1000);
+	chassis.moveTo(60, -31, 0, 1000, false, true, 0.8);
+	chassis.moveTo(60, -40, 0, 1000, false, false);
+	chassis.moveTo(60, -31, 0, 1000, false, true, 0.8);
 
 }
 
@@ -357,7 +360,7 @@ void opcontrol() {
 		// For tuning lateral PID
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
 			chassis.setPose(0,0,0);
-			chassis.moveTo(10, 0, 5000);
+			chassis.moveTo(10, 0, 0, 5000);
 		}
 
 		// For tuning angular PID

@@ -5,7 +5,7 @@
         "target": "v5",
         "templates": {
             "LemLib": {
-                "location": "C:\\Users\\theco\\AppData\\Roaming\\PROS\\templates\\LemLib@0.4.7",
+                "location": "C:\\Users\\Cole\\AppData\\Roaming\\PROS\\templates\\LemLib@0.5.0-beta1",
                 "metadata": {
                     "origin": "local"
                 },
@@ -13,19 +13,21 @@
                 "py/object": "pros.conductor.templates.local_template.LocalTemplate",
                 "supported_kernels": "^3.8.0",
                 "system_files": [
+                    "include\\lemlib\\logger.hpp",
+                    "include\\lemlib\\chassis\\chassis.hpp",
+                    "include\\lemlib\\pid.hpp",
                     "firmware\\LemLib.a",
                     "include\\lemlib\\chassis\\odom.hpp",
-                    "include\\lemlib\\pose.hpp",
                     "include\\lemlib\\util.hpp",
+                    "include\\lemlib\\pose.hpp",
+                    "firmware\\asset.mk",
+                    "include\\lemlib\\asset.hpp",
                     "include\\lemlib\\chassis\\trackingWheel.hpp",
-                    "include\\lemlib\\pid.hpp",
-                    "include\\lemlib\\api.hpp",
-                    "include\\lemlib\\logger.hpp",
-                    "include\\lemlib\\chassis\\chassis.hpp"
+                    "include\\lemlib\\api.hpp"
                 ],
                 "target": "v5",
                 "user_files": [],
-                "version": "0.4.7"
+                "version": "0.5.0-beta1"
             },
             "autoSelect": {
                 "location": "C:\\Users\\theco\\AppData\\Roaming\\PROS\\templates\\autoSelect@2.1.4",
