@@ -209,6 +209,15 @@ void skills() {
 
 }
 
+ASSET(skillspath1_txt);
+
+void skills2() {
+	chassis.follow(skillspath1_txt, 15000, 10);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(40, 0, 90, 2000, false, true, 100, 0);
+}
+
 /*****************************************
  * 
  * 
