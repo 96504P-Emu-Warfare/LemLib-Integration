@@ -95,13 +95,13 @@ void overheatWarning(Motor motor) {
     if (motor.get_port() > 0 && motor.get_temperature() >= 74) {
         Controller1.set_text(2, 8, "OVERHEAT");
         Controller1.rumble("......");
-        delay(400);
     }
 }
 
 bool autoFireOn;
 
 bool triballOnKicker() {
+	//if detect triball green color on kicker
     double hue1 = OPT1.get_hue();
     if (hue1 > 80 && hue1 < 100) {
         return true;
@@ -110,6 +110,7 @@ bool triballOnKicker() {
 }
 
 bool triballInCata() {
+	//if detect triball green color in cata
 	double hue2 = OPT2.get_hue();
 	if (hue2 > 80 && hue2 < 100) {
         return true;
@@ -118,24 +119,27 @@ bool triballInCata() {
 }
 
 void readyCata() {
-	while (OPT2.get_proximity() < 230) {
+	if (OPT2.get_proximity() < 230) {
 		CR.move_velocity(70);
 		Controller1.set_text(0,0, "Cata readying    ");
+		delay(20);
 	}
-	delay(100);
-	CR.move_velocity(0);
-	Controller1.set_text(0,0, "Cata ready       ");
-	
+	else {
+		CR.move_velocity(0);
+		Controller1.set_text(0,0, "Cata ready       ");
+	}
 }
 
 void fireCata(int cataSpeed = 80) {
-	while (OPT2.get_proximity() > 200) {
+	if (OPT2.get_proximity() > 200) {
 		CR.move_velocity(cataSpeed);
 		Controller1.set_text(0,0, "Cata firing      ");
+		delay(20);
 	}
-	CR.move_velocity(0);
-	delay(100);
-	Controller1.set_text(0,0, "Cata fired      ");
+	else {
+		CR.move_velocity(0);
+		Controller1.set_text(0,0, "Cata fired      ");
+	}
 }
 
 void screenDisplay1() {
@@ -216,6 +220,19 @@ void skills2() {
 	leftWing.set_value(1);
 	rightWing.set_value(1);
 	chassis.moveTo(40, 0, 90, 2000, false, true, 100, 0);
+}
+
+void autoCata() {
+	while (autoFireOn) {
+			
+		readyCata();
+
+		if (triballInCata() || triballOnKicker()) {
+			fireCata();
+		}
+
+		delay(100);
+	}
 }
 
 /*****************************************
@@ -299,6 +316,8 @@ void opcontrol() {
 
 	Task controllerScreen(screenDisplay2);
 
+	autoFireOn = true;
+
 	readyCata();
 
 	Controller1.set_text(1,0,"Drivecontrol started");
@@ -332,16 +351,9 @@ void opcontrol() {
         // ******************************************
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
+        
+		Task autoCataTask(autoCata);
 
-		autoFireOn = true;
-
-        if (autoFireOn) {
-			readyCata();
-
-			if (triballInCata() || triballOnKicker()) {
-				fireCata();
-			}
-		}
 
 		// ******************************************
 		// CONTROLLER 1							   //
