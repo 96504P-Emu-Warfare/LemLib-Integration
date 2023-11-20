@@ -3,9 +3,9 @@
 #include <string>
 
 //selector configuration
-#define HUE 360
+#define HUE 192
 #define DEFAULT 1
-#define AUTONS "1BALL", "6BALL", "NEARSIDE"
+#define AUTONS "SAFE/3", "RISKY/4", "RUSH/5"
 
 namespace selector{
 
