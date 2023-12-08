@@ -5,7 +5,7 @@
 //selector configuration
 #define HUE 192
 #define DEFAULT 1
-#define AUTONS "SAFE/3", "RISKY/4", "RUSH/5"
+#define AUTONS "SAFE/4", "RISKY/5-R", "RUSH/5-S"
 
 namespace selector{
 

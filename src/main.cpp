@@ -29,6 +29,7 @@ MotorGroup rightMotors({FR, BR, TR});
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
 ADIDigitalOut blocker('C');
+ADILED autoPuncherIndicator('D',1);
 
 bool blockerUp = false;
 
@@ -105,7 +106,7 @@ bool autoFireOn;
 bool triballOnKicker() {
 	//if detect triball green color on kicker
     double hue1 = OPT1.get_hue();
-    if (hue1 > 80 && hue1 < 95 && OPT1.get_proximity() > 200) {
+    if (hue1 > 80 && hue1 < 95 && OPT1.get_proximity() > 240) {
         return true;
     }
     return false;
@@ -114,13 +115,13 @@ bool triballOnKicker() {
 void readyCata() {
 	Controller1.print(1,1, "CATA READYING ");
 	while (OPT2.get_proximity() < 40) {
-		CR.move(100);
+		CR.move(110);
 		delay(20);
 	}
 	CR.move(0);
 }
 
-void fireCata(int cataSpeed = 120) {
+void fireCata(int cataSpeed = 90) {
 
 	CR.move(cataSpeed);
 
@@ -133,20 +134,25 @@ void fireCata(int cataSpeed = 120) {
 }
 
 // need to fix
-void autoCata() {
+void autoPuncher() {
 
 	while (true) {
 
 		while (autoFireOn) {
-			
-		readyCata();
 
-		if (triballOnKicker()) {
-			fireCata();
+			autoPuncherIndicator.set_all(16424566);
+				
+			readyCata();
+
+			if (triballOnKicker()) {
+				fireCata();
+				delay(300);
+			}
+
+			delay(20);
 		}
 
-		delay(20);
-	}
+	autoPuncherIndicator.clear_all();
 
 	delay(20);
 
@@ -176,7 +182,7 @@ void screenDisplay2() {
  * 
  * 
  *   AUTONOMOUS AND DRIVER CONTROL
- * 	 (Use https://path.jerryio.com/ )
+ * 	 (Use https://path.jerryio.com/ ) - width: , length: 
  * 
  * 
  * 
@@ -248,6 +254,7 @@ void nearsideRush() {
 	delay(500);
 	CR.move(0);
 	autoFireOn = true;
+
 	//rush middle and drop off alliance triball
 	chassis.setPose(-36, -62, 0);
 	chassis.moveTo(-30, -12, 0, 1500);
@@ -285,25 +292,26 @@ void fourBall() {
 	autoFireOn = true;
 	chassis.moveTo(7, -29, -70, 1500);
 	INT.move(0);
-	chassis.turnTo(48, -7, 1000);
+	chassis.turnTo(17, -21, 1000);
 	chassis.moveTo(17, -21, 90, 1000);
 	INT.move(-127);
 	delay(1500);
 	INT.move(127);
 	chassis.turnTo(0, -7, 1000);
-	chassis.moveTo(-3, -6, -80, 1000);
+	chassis.moveTo(-5, -6, -40, 1000);
 	chassis.turnTo(48, -7, 1000);
 	INT.move(-127);
 	delay(400);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(4, -9, 90, 1000, false, true, 10);
+	chassis.moveTo(40, -9, 90, 1000, false, true, 10);
 	leftWing.set_value(0);
 	rightWing.set_value(0);
 	chassis.moveTo(15, -25, 90, 1500, false, false);
 }
 
-void fiveBall() {
+// needs reworked
+void fiveBallMidRush() {
 	chassis.setPose(44, -59, 45);
 	INT.move(-127); // outtake
 	delay(300);
@@ -333,6 +341,30 @@ void fiveBall() {
 	leftWing.set_value(1);
 	rightWing.set_value(1);
 	chassis.moveTo(42, -5, 90, 2000, false, true, 15);
+}
+
+void fiveBallSafe() {
+	// intake triball under elevation
+
+	// move back to matchload bar
+
+	// turn and outtake triball 
+
+	// descore matchload
+
+	// score elevation, matchload and alliance
+
+	// back up
+
+	// move to side ball
+
+	// outtake to goal
+
+	// move to mid ball while intaking
+
+	// outtake mid ball and push in mid ball, goal ball and side ball
+
+	// back up
 }
 
 void skills() {
@@ -390,7 +422,7 @@ void initialize() {
 	OPT1.set_led_pwm(30);
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
-	Task autoCataTask(autoCata);
+	Task autoPuncherTask(autoPuncher);
 }
 
 /**
@@ -428,9 +460,9 @@ void autonomous() {
     if(selector::auton == 1){nearsideSafe();} // safe
     if(selector::auton == 2){nearsideRisky();} // risky
     if(selector::auton == 3){nearsideRush();} // rush
-    if(selector::auton == -1){} // 3 ball
-    if(selector::auton == -2){fourBall();} // 4 ball
-    if(selector::auton == -3){fiveBall();} // 5 ball
+    if(selector::auton == -1){fourBall();} // 3 ball
+    if(selector::auton == -2){fiveBallMidRush();} // 4 ball
+    if(selector::auton == -3){fiveBallSafe();} // 5 ball
     if(selector::auton == 0){skills();} // skills
 	
 	autoFireOn = false;
@@ -477,6 +509,7 @@ void opcontrol() {
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
+	// !!! SWITCH TO EVENT BASED !!!
 	/**
 	 * BUTTON INPUT SYSTEM
 	 */
@@ -493,11 +526,11 @@ void opcontrol() {
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (cataMotorOn == false) {
-				CR.move_velocity(90);
+				CR.move(80);
 				cataMotorOn = true;
 			}
 			else {
-				CR.move_velocity(0);
+				CR.move(0);
 				cataMotorOn = false;
 			}
 		}
@@ -560,7 +593,7 @@ void opcontrol() {
 		}
 
 		// Simple linear drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
-		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
+		/**double drive = Controller1.get_analog(ANALOG_LEFT_Y);
 
 		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
 
@@ -577,6 +610,10 @@ void opcontrol() {
 		FR.move_velocity(right);
 		TR.move_velocity(right);
 		BR.move_velocity(right);   
+		**/
+
+		// Lem drive control, basically the same as above with a function controller to add curve to drive, using the equation y=ax^{3}+(1-a)x, where a is the changed variable
+		chassis.arcade(Controller1.get_analog(ANALOG_LEFT_Y), Controller1.get_analog(ANALOG_RIGHT_X), 0);
 		
 		overheatWarning(FL);
         overheatWarning(TL);
