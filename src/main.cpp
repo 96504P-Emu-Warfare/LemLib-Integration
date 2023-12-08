@@ -42,6 +42,9 @@ Optical OPT2(10);
 
 Imu Inr(9);
 
+int triballsFired = 0;
+
+
 lemlib::Drivetrain_t drivetrain {
 	&leftMotors,
 	&rightMotors,
@@ -147,6 +150,7 @@ void autoPuncher() {
 			if (triballOnKicker()) {
 				fireCata();
 				delay(300);
+				triballsFired++;
 			}
 
 			delay(20);
@@ -369,14 +373,13 @@ void fiveBallSafe() {
 
 void skills() {
 	autoFireOn = false;
-	int triballs = 0;
+	triballsFired = 0;
 	chassis.setPose(-43, -57, -90);
 	chassis.moveTo(-52, -57, 45, 1000, false, false);
 	chassis.turnTo(46, -3, 1000);
-	while (triballs < 44) {
-		//readyCata();
-		//fireCata(100);
-		triballs++;
+	autoFireOn = true;
+	while (triballsFired < 44) {
+		pros::delay(20);
 	}
 	chassis.moveTo(48, -54, -90, 6000);
 	chassis.moveTo(62, -41, 180, 1000);
