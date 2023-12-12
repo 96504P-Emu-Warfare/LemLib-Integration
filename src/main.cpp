@@ -316,59 +316,55 @@ void fourBall() {
 
 // needs reworked
 void fiveBallMidRush() {
-	chassis.setPose(44, -59, 45);
-	INT.move(-127); // outtake
-	delay(300);
+	// rush forward bringing triball with on wing and leave near goal when wing is undeployed
 
-	chassis.turnTo(9, -58, 1000);
-	INT.move(127);
-	chassis.moveTo(6, -58, -90, 2000);
-	chassis.moveTo(36,-61, -90, 2000, false, false);
-	chassis.turnTo(60, -30, 1000);
-	INT.move(-127); // outtake
-	delay(300);
+	// grab central far triball, turn and score both alliance and central far
 
-	chassis.turnTo(62, -33, 1000, false, true);
-	chassis.moveTo(60, -31, 180, 2000, false, false, 3, 0.1);
-	chassis.moveTo(57, -45, -90, 1000);
-	chassis.turnTo(10, -22, 1000);
-	INT.move(127);
-	chassis.moveTo(10, -22, -50, 2000, false, true, 0, 0.2);
-	chassis.turnTo(55, -7, 1000);
-	INT.move(-127);
-	delay(300);
+	// go back and score safe central 
 
-	INT.move(127);
-	chassis.turnTo(9, -5, 1500);
-	chassis.moveTo(9, -5, -30, 3000);
-	chassis.turnTo(55, 0, 1000);
-	leftWing.set_value(1);
-	rightWing.set_value(1);
-	chassis.moveTo(42, -5, 90, 2000, false, true, 15);
+	// go to mid and grab central triball and score
 }
 
-void fiveBallSafe() {
-	// intake triball under elevation
+void sixBall() {
+	// release the intake
+	autoFireOn = true;
 
-	// move back to matchload bar
+	// set the pose
+	chassis.setPose(16, -59, 0);
 
-	// turn and outtake triball 
+	// move forward and intake the triball
+	INT.move(127);
+	chassis.moveTo(7, -59, 0, 1000);
 
-	// descore matchload
+	// move back and knock out the alliance triball
+	chassis.moveTo(43, -59, 0, 2000, false, false, 0, 0);
+	chassis.turnTo(56, -47, 1000);
+	chassis.moveTo(56, -47, 50, 1000, false, true, 0, 0);
+	rightWing.set_value(1);
+	chassis.moveTo(50, -53, 50, 1000, false, true, 0, 0);
+	chassis.turnTo(60, 0, 1000);
 
-	// score elevation, matchload and alliance
+	// knock in triballs
+	rightWing.set_value(0);
+	chassis.turnTo(62, -30, 1000);
+	INT.move(-127);
+	delay(500);
+	chassis.turnTo(62, -30, 1000, false, true);
+	chassis.moveTo(62, -30, 180, 1000, false, false, 7, 0.1);
 
-	// back up
+	// get safe mid ball
+	chassis.turnTo(47, -43, 1000);
+	chassis.moveTo(47, -43, 220, 1000);
+	INT.move(127);
+	chassis.turnTo(11, -28, 1000);
+	chassis.moveTo(11, -28, 295, 1000);
 
-	// move to side ball
+	// send triball into goal direction
 
-	// outtake to goal
+	// collect near central triball (9, -4) @ 350
 
-	// move to mid ball while intaking
+	// outtake central triball while knocking in safe and far central triball (41, -4) @90
 
-	// outtake mid ball and push in mid ball, goal ball and side ball
-
-	// back up
 }
 
 void skills() {
@@ -465,7 +461,7 @@ void autonomous() {
     if(selector::auton == 3){nearsideRush();} // rush
     if(selector::auton == -1){fourBall();} // 3 ball
     if(selector::auton == -2){fiveBallMidRush();} // 4 ball
-    if(selector::auton == -3){fiveBallSafe();} // 5 ball
+    if(selector::auton == -3){sixBall();} // 5 ball
     if(selector::auton == 0){skills();} // skills
 	
 	autoFireOn = false;
