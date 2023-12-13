@@ -313,13 +313,33 @@ void fourBall() {
 
 // needs reworked
 void fiveBallMidRush() {
-	// rush forward bringing triball with on wing and leave near goal when wing is undeployed
+	chassis.setPose(46, -58, 330);
+
+	// hit alliance triball toward goal with right win
+	rightWing.set_value(1);
 
 	// grab central far triball, turn and score both alliance and central far
+	INT.move(127);
+	chassis.moveTo(10, -5, 330, 2500, true);
+	delay(500);
+	rightWing.set_value(0);
+	chassis.turnTo(40, -4, 1000);
+	INT.move(-127);
+	chassis.moveTo(40, -4, 90, 1500);
 
-	// go back and score safe central 
+	// grab central safe triball
+	chassis.turnTo(12, -21, 1000);
+	chassis.moveTo(12, -21, 235, 1500);
+	chassis.turnTo(52, -47, 1000);
+	chassis.moveTo(52, -47, 120, 2000);
 
-	// go to mid and grab central triball and score
+	// go back and knock out matchload
+	rightWing.set_value(1);
+	chassis.turnTo(0, 0, 1000);
+	chassis.turnTo(60, -34, 1000, false, true);
+
+	// tap in alliance, matchload and central safe
+	chassis.moveTo(60, -34, 180, 1500, false, false);
 }
 
 void sixBall() {
