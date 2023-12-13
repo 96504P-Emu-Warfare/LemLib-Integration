@@ -13,13 +13,13 @@ using namespace pros;
 ******************************************/
 
 Motor FL(5, E_MOTOR_GEARSET_06, 1);
+Motor BL(3, E_MOTOR_GEARSET_06, 1);
+Motor TL(6, E_MOTOR_GEARSET_06, 0);
 Motor FR(11, E_MOTOR_GEARSET_06, 0);
-Motor BL(6, E_MOTOR_GEARSET_06, 1);
 Motor BR(12, E_MOTOR_GEARSET_06, 0);
-Motor TL(8, E_MOTOR_GEARSET_06, 0);
 Motor TR(13, E_MOTOR_GEARSET_06, 1);
 
-Motor INT(2, E_MOTOR_GEARSET_06, 1);
+Motor INT(1, E_MOTOR_GEARSET_06, 1);
 //Motor CL(18, E_MOTOR_GEARSET_18, 1);
 Motor CR(20, E_MOTOR_GEARSET_18, 0);
 
@@ -37,10 +37,10 @@ Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
 
 Optical OPT1(4);
-Optical OPT2(10);
+Optical OPT2(9);
 //ADIEncoder ENC('C', 'D', false);
 
-Imu Inr(9);
+Imu Inr(8);
 
 int triballsFired = 0;
 
@@ -56,7 +56,7 @@ lemlib::Drivetrain_t drivetrain {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    12, // kP
+    8, // kP
     45, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
@@ -228,26 +228,23 @@ void nearsideRisky() {
 }
 
 void nearsideSafe() {
-	autoFireOn = false;
-	CR.move(120);
-	delay(500);
-	CR.move(0);
-	chassis.setPose(-44,-59, 135);
-	chassis.moveTo(-56, -48, 135, 1000, false, false, 0, 0, 50);
-	chassis.moveTo(-53, -53, 135, 1000, false, true, 0, 0, 50);
+	autoFireOn = true;
+	chassis.setPose(-46,-55, 135);
+	chassis.moveTo(-56, -48, 145, 1000, false, false, 0, 0, 50);
+	chassis.moveTo(-53, -53, 145, 1000, false, true, 0, 0, 50);
 	rightWing.set_value(1);
 	delay(200);
 	chassis.turnTo(0, 0, 1000);
-	chassis.turnTo(-60, -47, 2000, false, true);
+	chassis.turnTo(-60, -40, 2000, false, true);
 	rightWing.set_value(0);
 	delay(200);
 
-	chassis.moveTo(-60, -47, 135, 2000, false, false, 0);
-	chassis.moveTo(-60, -30, 180, 2000, false, false, 5);
+	chassis.moveTo(-56, -47, 155, 2000, false, false, 0);
+	chassis.moveTo(-60, -24, 180, 2000, false, false, 5);
 	delay(200);
 	INT.move(-127);
 	chassis.moveTo(-34, -60, 90, 2000);
-	chassis.moveTo(-6, -59, 90, 2000);
+	chassis.moveTo(-7, -59, 90, 2000);
 	leftWing.set_value(1);
 }
 
@@ -330,51 +327,70 @@ void sixBall() {
 	autoFireOn = true;
 
 	// set the pose
-	chassis.setPose(16, -59, 0);
+	chassis.setPose(16, -59, -90);
 
 	// move forward and intake the triball
 	INT.move(127);
-	chassis.moveTo(7, -59, 0, 1000);
+	chassis.moveTo(5, -59, -90, 1000);
 
 	// move back and knock out the alliance triball
-	chassis.moveTo(43, -59, 0, 2000, false, false, 0, 0);
-	chassis.turnTo(56, -47, 1000);
-	chassis.moveTo(56, -47, 50, 1000, false, true, 0, 0);
+	chassis.moveTo(43, -59, -90, 2000, false, false, 0, 0);
 	rightWing.set_value(1);
-	chassis.moveTo(50, -53, 50, 1000, false, true, 0, 0);
+	chassis.turnTo(54, -48, 1000);
+	INT.move(-127);
+	chassis.moveTo(54, -48, 20, 1000, false, true, 0, 0);
 	chassis.turnTo(60, 0, 1000);
 
-	// knock in triballs
+	// knock in first 3 triballs
 	rightWing.set_value(0);
-	chassis.turnTo(62, -30, 1000);
+	chassis.turnTo(62, -35, 1000);
 	INT.move(-127);
 	delay(500);
-	chassis.turnTo(62, -30, 1000, false, true);
-	chassis.moveTo(62, -30, 180, 1000, false, false, 7, 0.1);
+	chassis.turnTo(70, -24, 1000, false, true);
+	chassis.moveTo(62, -36, 180, 1000, false, false);
 
 	// get safe mid ball
 	chassis.turnTo(47, -43, 1000);
 	chassis.moveTo(47, -43, 220, 1000);
 	INT.move(127);
-	chassis.turnTo(11, -28, 1000);
-	chassis.moveTo(11, -28, 295, 1000);
+	chassis.turnTo(7, -30, 1000);
+	INT.move(127);
+	autoFireOn = true;
+	chassis.moveTo(7, -29, -70, 1500);
+	INT.move(0);
 
-	// send triball into goal direction
+	// roll safe mid ball toward goal	
+	chassis.turnTo(17, -21, 1000);
+	chassis.moveTo(17, -21, 90, 1000);
+	INT.move(-127);
+	delay(1500);
+	INT.move(127);
 
-	// collect near central triball (9, -4) @ 350
+	// get center ball
+	chassis.turnTo(2, -3, 1000);
+	chassis.moveTo(2, -3, -30, 1000);
+	chassis.turnTo(48, -7, 1000);
+	INT.move(-127);
+	delay(400);
 
-	// outtake central triball while knocking in safe and far central triball (41, -4) @90
+	// knock in all balls
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(40, -9, 90, 1000, false, true, 10);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
+	chassis.moveTo(15, -25, 0, 1500, false, false);
 
 }
 
 void skills() {
 	autoFireOn = false;
 	triballsFired = 0;
-	chassis.setPose(-43, -57, -90);
-	chassis.moveTo(-52, -57, 45, 1000, false, false);
+	chassis.setPose(-43, -57, 0);
+	chassis.moveTo(-52, -57, -45, 1000, false, false);
 	chassis.turnTo(46, -3, 1000);
 	autoFireOn = true;
-	while (triballsFired < 44) {
+	while (triballsFired < 5) {
 		pros::delay(20);
 	}
 	chassis.moveTo(48, -54, -90, 6000);
@@ -392,7 +408,7 @@ void skills() {
 ASSET(skillspath1_txt);
 
 void skills2() {
-	chassis.follow(skillspath1_txt, 15000, 10);
+	chassis.follow(skillspath1_txt, 15000, 4);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
 	chassis.moveTo(40, 0, 90, 2000, false, true, 100, 0);
@@ -525,7 +541,7 @@ void opcontrol() {
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (cataMotorOn == false) {
-				CR.move(80);
+				CR.move(100);
 				cataMotorOn = true;
 			}
 			else {
@@ -557,6 +573,16 @@ void opcontrol() {
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN)) {
 			autonomous();
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
+			chassis.setPose(0,0,0);
+			chassis.turnTo(90, 0, 0);
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
+			chassis.setPose(0,0,0);
+			chassis.moveTo(0, 10, 0, 2000);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
