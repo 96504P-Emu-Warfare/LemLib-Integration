@@ -23,13 +23,13 @@ Motor INT(1, E_MOTOR_GEARSET_06, 1);
 //Motor CL(18, E_MOTOR_GEARSET_18, 1);
 Motor CR(20, E_MOTOR_GEARSET_18, 0);
 
-MotorGroup leftMotors({FL, BL, TL});
-MotorGroup rightMotors({FR, BR, TR});
+MotorGroup leftMotors({BL, TL});
+MotorGroup rightMotors({BR, TR});
 
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
 ADIDigitalOut blocker('C');
-ADILED autoPuncherIndicator('D',1);
+ADILED autoPuncherIndicator('H',1);
 
 bool blockerUp = false;
 
@@ -56,18 +56,18 @@ lemlib::Drivetrain_t drivetrain {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    8, // kP
-    45, // kD
+    14, // kP
+    48, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
     500, // largeErrorTimeout
-    5 // slew rate
+    8 // slew rate
 };
  
 // turning PID
 lemlib::ChassisController_t angularController {
-    4, // kP
+    6, // kP
     40, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
@@ -109,7 +109,7 @@ bool autoFireOn;
 bool triballOnKicker() {
 	//if detect triball green color on kicker
     double hue1 = OPT1.get_hue();
-    if (hue1 > 80 && hue1 < 95 && OPT1.get_proximity() > 240) {
+    if (hue1 > 80 && hue1 < 95 && OPT1.get_proximity() > 250) {
         return true;
     }
     return false;
@@ -119,7 +119,7 @@ void readyCata() {
 	Controller1.print(1,1, "CATA READYING ");
 	while (OPT2.get_proximity() < 40) {
 		CR.move(110);
-		delay(20);
+		delay(10);
 	}
 	CR.move(0);
 }
@@ -130,10 +130,11 @@ void fireCata(int cataSpeed = 90) {
 
 	while(triballOnKicker()) {
 
-		delay(20);
+		delay(5);
 	}
 
 	CR.move(0);
+
 }
 
 // need to fix
@@ -149,11 +150,10 @@ void autoPuncher() {
 
 			if (triballOnKicker()) {
 				fireCata();
-				delay(300);
 				triballsFired++;
 			}
 
-			delay(20);
+			delay(10);
 		}
 
 	autoPuncherIndicator.clear_all();
@@ -240,7 +240,7 @@ void nearsideSafe() {
 	delay(200);
 
 	chassis.moveTo(-56, -47, 155, 2000, false, false, 0);
-	chassis.moveTo(-60, -24, 180, 2000, false, false, 5);
+	chassis.moveTo(-60, -24, 180, 2000, false, false, 20);
 	delay(200);
 	INT.move(-127);
 	chassis.moveTo(-34, -60, 90, 2000);
@@ -313,33 +313,60 @@ void fourBall() {
 
 // needs reworked
 void fiveBallMidRush() {
-	chassis.setPose(46, -58, 330);
+	// release intake and set pose
+	chassis.setPose(47, -53, 320);
+	autoFireOn = true;
 
 	// hit alliance triball toward goal with right win
 	rightWing.set_value(1);
 
 	// grab central far triball, turn and score both alliance and central far
 	INT.move(127);
-	chassis.moveTo(10, -5, 330, 2500, true);
-	delay(500);
+	chassis.turnTo(9, -5, 1000);
+	chassis.moveTo(9, -5, 320, 300, false, true, 20);
+	autoFireOn = false;
 	rightWing.set_value(0);
-	chassis.turnTo(40, -4, 1000);
+	chassis.moveTo(9, -5, 320, 2500, false, true, 5);
+	chassis.turnTo(40, -4, 800);
 	INT.move(-127);
-	chassis.moveTo(40, -4, 90, 1500);
+	chassis.turnTo(40, -4, 250);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(40, -4, 90, 1300, false, true, 20);
+	chassis.moveTo(32, -4, 90, 750, false, false);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 
 	// grab central safe triball
-	chassis.turnTo(12, -21, 1000);
-	chassis.moveTo(12, -21, 235, 1500);
-	chassis.turnTo(52, -47, 1000);
-	chassis.moveTo(52, -47, 120, 2000);
+	chassis.turnTo(13, -17, 1000);
+	INT.move(127);
+	chassis.moveTo(13, -15, 240, 1500);
+	chassis.turnTo(56, -46, 500);
+	chassis.moveTo(56, -46, 140, 2500);
 
 	// go back and knock out matchload
 	rightWing.set_value(1);
-	chassis.turnTo(0, 0, 1000);
+	INT.move(-127);
+	chassis.turnTo(45, -24, 1000);
+	rightWing.set_value(0);
 	chassis.turnTo(60, -34, 1000, false, true);
 
 	// tap in alliance, matchload and central safe
-	chassis.moveTo(60, -34, 180, 1500, false, false);
+	chassis.moveTo(61, -30, 200, 1000, false, false);
+	BL.move(-127);
+	BR.move(-127);
+	TL.move(-127);
+	TR.move(-127);
+	FL.move(-127);
+	FR.move(-127);
+	delay(1000);
+	BL.move(20);
+	BR.move(20);
+	TL.move(20);
+	TR.move(20);
+	FL.move(20);
+	FR.move(20);
+	//chassis.moveTo(60, -20, 180, 1500, false, false, 100);
 }
 
 void sixBall() {
@@ -597,12 +624,16 @@ void opcontrol() {
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
 			chassis.setPose(0,0,0);
-			chassis.turnTo(90, 0, 0);
+			chassis.turnTo(1, 0, 1000);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
 			chassis.setPose(0,0,0);
 			chassis.moveTo(0, 10, 0, 2000);
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_UP)) {
+			selector::auton++;
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
