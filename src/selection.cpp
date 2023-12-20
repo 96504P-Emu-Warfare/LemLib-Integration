@@ -127,8 +127,4 @@ void init(int hue, int default_auton, const char **autons){
 	pros::Task tabWatcher_task(tabWatcher);
 
 }
-
-void stop() {
-	
-}
 } // namespace selector

@@ -311,7 +311,6 @@ void fourBall() {
 	chassis.moveTo(15, -25, 90, 1500, false, false);
 }
 
-// needs reworked
 void fiveBallMidRush() {
 	// release intake and set pose
 	chassis.setPose(47, -53, 320);
@@ -320,7 +319,7 @@ void fiveBallMidRush() {
 	// hit alliance triball toward goal with right win
 	rightWing.set_value(1);
 
-	// grab central far triball, turn and score both alliance and central far
+	// grab central far triball, turn and score both central and central far
 	INT.move(127);
 	chassis.turnTo(9, -5, 1000);
 	chassis.moveTo(9, -5, 320, 300, false, true, 20);
@@ -366,7 +365,6 @@ void fiveBallMidRush() {
 	TR.move(20);
 	FL.move(20);
 	FR.move(20);
-	//chassis.moveTo(60, -20, 180, 1500, false, false, 100);
 }
 
 void sixBall() {
