@@ -89,9 +89,9 @@ void init(int hue, int default_auton, const char **autons){
 
 	//set default tab
 	if(auton < 0){
-		lv_tabview_set_tab_act(tabview, 1, LV_ANIM_NONE);
+		lv_tabview_set_tab_act(tabview, 1, LV_ANIM_FLOAT_RIGHT);
 	}else if(auton == 0){
-		lv_tabview_set_tab_act(tabview, 2, LV_ANIM_NONE);
+		lv_tabview_set_tab_act(tabview, 2, LV_ANIM_FLOAT_LEFT);
 	}
 
 	// add content to the tabs
