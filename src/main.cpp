@@ -624,17 +624,16 @@ void opcontrol() {
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
-			chassis.setPose(0,0,0);
-			chassis.turnTo(1, 0, 1000);
+			globalCataSpeed -= 5;
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
-			chassis.setPose(0,0,0);
-			chassis.moveTo(0, 10, 0, 2000);
+			globalCataSpeed += 5;
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_UP)) {
-			selector::auton++;
+			chassis.setPose(0,0,0);
+			chassis.moveTo(0, 20, 0, 2000);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
