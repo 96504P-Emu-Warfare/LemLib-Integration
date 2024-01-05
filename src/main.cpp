@@ -32,6 +32,7 @@ ADIDigitalOut blocker('C');
 ADILED autoPuncherIndicator('H',1);
 
 bool blockerUp = false;
+int globalCataSpeed = 90;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -109,7 +110,7 @@ bool autoFireOn;
 bool triballOnKicker() {
 	//if detect triball green color on kicker
     double hue1 = OPT1.get_hue();
-    if (hue1 > 80 && hue1 < 95 && OPT1.get_proximity() > 250) {
+    if (OPT1.get_proximity() > 250) { //hue1 > 80 && hue1 < 95 && 
         return true;
     }
     return false;
@@ -545,6 +546,8 @@ void opcontrol() {
 
 	Task controllerScreen(screenDisplay1);
 
+	CR.move(globalCataSpeed);
+
 	autoFireOn = false;
 	blockerUp = false;
 
@@ -586,7 +589,7 @@ void opcontrol() {
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (cataMotorOn == false) {
-				CR.move(100);
+				CR.move(globalCataSpeed);
 				cataMotorOn = true;
 			}
 			else {
