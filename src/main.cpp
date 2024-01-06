@@ -430,7 +430,7 @@ void sixBall() {
 }
 
 void skills() {
-	// inital set up and setting cata to global speed
+	// initial setup and setting cata to global speed
 	autoFireOn = false;
 	CR.move(globalCataSpeed);
 	chassis.setPose(-52, -51, 225);
