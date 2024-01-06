@@ -430,19 +430,32 @@ void sixBall() {
 }
 
 void skills() {
+	// inital set up and setting cata to global speed
 	autoFireOn = false;
 	CR.move(globalCataSpeed);
 	chassis.setPose(-52, -51, 225);
+
+	// turn toward goal and fire for 40 seconds
 	chassis.turnTo(46, -11, 1000, false, true);
 	pros::delay(40000); // however long it takes to fire all triballs
+
+	// turn autofire on to keep cata down
 	autoFireOn = true;
+
+	// turn and move backwards to other side
+	// pushing triballs along with robot
 	chassis.turnTo(-19, -59, 1000, false, true);
 	chassis.moveTo(-19, -59, 285, 1000, false, false);
 	chassis.moveTo(39, -59, 270, 2000, false, false);
+
+	// backwards push corner triballs into goal
 	chassis.turnTo(57, -44, 1000, false, true);
 	chassis.moveTo(57, -44, 230, 1500, false, false);
 	chassis.turnTo(61, -32, 1000, false, true);
 	chassis.moveTo(61, -32, 180, 1500, false, false, 5, .8);
+
+	// move out of the corner and towards the middle,
+	// deploying wings on way to collect triballs
 	chassis.moveTo(44, -45, 250, 1000, false, true, 0, 0.8);
 	chassis.turnTo(11, -11, 1000);
 	chassis.moveTo(11, -11, 315, 500);
@@ -452,11 +465,15 @@ void skills() {
 	leftWing.set_value(0);
 	rightWing.set_value(0);
 	chassis.moveTo(11, -11, 315, 1500);
+
+	// first front push 
 	chassis.turnTo(39, -10, 1000);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
 	chassis.moveTo(39, -10, 90, 1500, false, true, 20);
-	chassis.moveTo(39, -10, 90, 1500, false, true);
+
+	// back up and second push
+	chassis.moveTo(11, -11, 90, 1500, false, false);
 	chassis.moveTo(37, 3, 90, 1500, false, true, 20);
 
 }
