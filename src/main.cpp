@@ -431,24 +431,34 @@ void sixBall() {
 
 void skills() {
 	autoFireOn = false;
-	triballsFired = 0;
-	chassis.setPose(-43, -57, 0);
-	chassis.moveTo(-52, -57, -45, 1000, false, false);
-	chassis.turnTo(46, -3, 1000);
+	CR.move(globalCataSpeed);
+	chassis.setPose(-52, -51, 225);
+	chassis.turnTo(46, -11, 1000, false, true);
+	pros::delay(40000); // however long it takes to fire all triballs
 	autoFireOn = true;
-	while (triballsFired < 5) {
-		pros::delay(20);
-	}
-	chassis.moveTo(48, -54, -90, 6000);
-	chassis.moveTo(62, -41, 180, 1000);
-	chassis.moveTo(60, -31, 0, 1000, false, false, 0.6, 0.0, 110);
-	chassis.moveTo(60, -40, 0, 1000, false, true);
-	chassis.moveTo(60, -31, 0, 1000, false, false, 0.6, 0.0, 110);
-	chassis.moveTo(60, -40, -45, 1000, false, true);
-	chassis.moveTo(13, -32, 0, 2000, false, true, 0, 0.6);
+	chassis.turnTo(-19, -59, 1000, false, true);
+	chassis.moveTo(-19, -59, 285, 1000, false, false);
+	chassis.moveTo(39, -59, 270, 2000, false, false);
+	chassis.turnTo(57, -44, 1000, false, true);
+	chassis.moveTo(57, -44, 230, 1500, false, false);
+	chassis.turnTo(61, -32, 1000, false, true);
+	chassis.moveTo(61, -32, 180, 1500, false, false, 5, .8);
+	chassis.moveTo(44, -45, 250, 1000, false, true, 0, 0.8);
+	chassis.turnTo(11, -11, 1000);
+	chassis.moveTo(11, -11, 315, 500);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(40, -4, 90, 4000, false, true, 0.6, 0.9, 127);
+	chassis.moveTo(11, -11, 315, 250);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
+	chassis.moveTo(11, -11, 315, 1500);
+	chassis.turnTo(39, -10, 1000);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	chassis.moveTo(39, -10, 90, 1500, false, true, 20);
+	chassis.moveTo(39, -10, 90, 1500, false, true);
+	chassis.moveTo(37, 3, 90, 1500, false, true, 20);
+
 }
 
 ASSET(skillspath1_txt);
@@ -572,7 +582,6 @@ void opcontrol() {
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
-	// !!! SWITCH TO EVENT BASED !!!
 	/**
 	 * BUTTON INPUT SYSTEM
 	 */
