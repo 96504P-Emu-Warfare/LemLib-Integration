@@ -33,6 +33,7 @@ ADILED autoPuncherIndicator('H',1);
 
 bool blockerUp = false;
 int globalCataSpeed = 90;
+int cataDelay = 10; // in ms
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -57,8 +58,8 @@ lemlib::Drivetrain_t drivetrain {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    14, // kP
-    48, // kD
+    35, // kP
+    55, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -117,7 +118,6 @@ bool triballOnKicker() {
 }
 
 void readyCata() {
-	Controller1.print(1,1, "CATA READYING ");
 	while (OPT2.get_proximity() < 40) {
 		CR.move(110);
 		delay(10);
@@ -150,6 +150,7 @@ void autoPuncher() {
 			readyCata();
 
 			if (triballOnKicker()) {
+				pros::delay(cataDelay);
 				fireCata();
 				triballsFired++;
 			}
@@ -180,6 +181,13 @@ void screenDisplay2() {
 		pros::lcd::print(1, "distance: %d", OPT2.get_proximity()); 
 		pros::delay(20);
     }
+}
+
+void controllerScreen() {
+	while (true) {
+		Controller1.set_text(1,1, "CaSp:" + std::to_string(globalCataSpeed) + " AutoF:" + std::to_string(autoFireOn));
+		delay(100);
+	}
 }
 
 /*****************************************
@@ -431,12 +439,12 @@ void sixBall() {
 
 void skills() {
 	// initial setup and setting cata to global speed
-	autoFireOn = false;
-	CR.move(globalCataSpeed);
-	chassis.setPose(-52, -51, 225);
+	autoFireOn = true;
+	//CR.move(globalCataSpeed);
+	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
-	chassis.turnTo(46, -11, 1000, false, true);
+	chassis.turnTo(46, -12, 1000, false, true);
 	pros::delay(40000); // however long it takes to fire all triballs
 
 	// turn autofire on to keep cata down
@@ -444,37 +452,105 @@ void skills() {
 
 	// turn and move backwards to other side
 	// pushing triballs along with robot
+	INT.move(-127);
 	chassis.turnTo(-19, -59, 1000, false, true);
 	chassis.moveTo(-19, -59, 285, 1000, false, false);
-	chassis.moveTo(39, -59, 270, 2000, false, false);
+	chassis.moveTo(39, -56, 270, 2000, false, false);
 
 	// backwards push corner triballs into goal
-	chassis.turnTo(57, -44, 1000, false, true);
-	chassis.moveTo(57, -44, 230, 1500, false, false);
-	chassis.turnTo(61, -32, 1000, false, true);
-	chassis.moveTo(61, -32, 180, 1500, false, false, 5, .8);
+	chassis.turnTo(61, -43, 1000, false, true);
+	chassis.moveTo(61, -43, 230, 1500, false, false);
+	chassis.turnTo(64, 0, 1000, false, true);
+	//chassis.moveTo(61, -32, 180, 2000, false, false, 0.6, 20);
+	BL.move(-100);
+	BR.move(-100);
+	TL.move(-100);
+	TR.move(-100);
+	FL.move(-100);
+	FR.move(-100);
+	delay(1000);
+	chassis.setPose(61, -32, 180);
+	BL.move(20);
+	BR.move(20);
+	TL.move(20);
+	TR.move(20);
+	FL.move(20);
+	FR.move(20);
+	delay(750);
+	BL.move(0);
+	BR.move(0);
+	TL.move(0);
+	TR.move(0);
+	FL.move(0);
+	FR.move(0);
 
 	// move out of the corner and towards the middle,
 	// deploying wings on way to collect triballs
-	chassis.moveTo(44, -45, 250, 1000, false, true, 0, 0.8);
 	chassis.turnTo(11, -11, 1000);
 	chassis.moveTo(11, -11, 315, 500);
 	leftWing.set_value(1);
-	rightWing.set_value(1);
 	chassis.moveTo(11, -11, 315, 250);
 	leftWing.set_value(0);
-	rightWing.set_value(0);
 	chassis.moveTo(11, -11, 315, 1500);
 
 	// first front push 
-	chassis.turnTo(39, -10, 1000);
+	chassis.turnTo(48, -5, 1000);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(39, -10, 90, 1500, false, true, 20);
+	//chassis.moveTo(40, -5, 90, 1500, false, true, 20);
+	BL.move(100);
+	BR.move(100);
+	TL.move(100);
+	TR.move(100);
+	FL.move(100);
+	FR.move(100);
+	delay(1000);
+	chassis.setPose(40, -5, 90);
+	BL.move(-20);
+	BR.move(-20);
+	TL.move(-20);
+	TR.move(-20);
+	FL.move(-20);
+	FR.move(-20);
+	delay(1000);
+	BL.move(0);
+	BR.move(0);
+	TL.move(0);
+	TR.move(0);
+	FL.move(0);
+	FR.move(0);
+	delay(100);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 
 	// back up and second push
 	chassis.moveTo(11, -11, 90, 1500, false, false);
-	chassis.moveTo(37, 3, 90, 1500, false, true, 20);
+	chassis.turnTo(48, 3, 1000);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	BL.move(100);
+	BR.move(100);
+	TL.move(100);
+	TR.move(100);
+	FL.move(100);
+	FR.move(100);
+	delay(1000);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
+	BL.move(-20);
+	BR.move(-20);
+	TL.move(-20);
+	TR.move(-20);
+	FL.move(-20);
+	FR.move(-20);
+	delay(1000);
+	BL.move(0);
+	BR.move(0);
+	TL.move(0);
+	TR.move(0);
+	FL.move(0);
+	FR.move(0);
+	delay(1000);
 
 }
 
@@ -571,18 +647,17 @@ void autonomous() {
  */
 void opcontrol() {
 
-	Task controllerScreen(screenDisplay1);
+	Task brainScreen(screenDisplay1);
+	Task controlllerScreenTask(controllerScreen);
 
 	CR.move(globalCataSpeed);
 
 	autoFireOn = false;
 	blockerUp = false;
 
-	Controller1.set_text(1,0,"Drivecontrol started");
-
     // Variables
     float driveSpeed = .9;
-    float turnSpeed = .4;
+    float turnSpeed = .5;
 	bool leftWingOut = false;
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
@@ -630,8 +705,11 @@ void opcontrol() {
 			}
 			else {
 				autoFireOn = true;
-				Controller1.set_text(1, 1, "AUTOFIREON == true");
 			}
+		}
+
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
+			skills();
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
@@ -695,16 +773,13 @@ void opcontrol() {
 		}
 
 		// Simple linear drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
-		/**double drive = Controller1.get_analog(ANALOG_LEFT_Y);
+		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
 
 		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
 
 		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 600);
 
 		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 600);
-
-		if (left > 600) {left = 600;} else if (left < -600) {left = -600;}
-		if (right > 600) {right = 600;} else if (right < -600) {right = -600;}
 		
 		FL.move_velocity(left);
 		TL.move_velocity(left);
@@ -712,10 +787,10 @@ void opcontrol() {
 		FR.move_velocity(right);
 		TR.move_velocity(right);
 		BR.move_velocity(right);   
-		**/
+		//**/
 
 		// Lem drive control, basically the same as above with a function controller to add curve to drive, using the equation y=ax^{3}+(1-a)x, where a is the changed variable
-		chassis.arcade(Controller1.get_analog(ANALOG_LEFT_Y), Controller1.get_analog(ANALOG_RIGHT_X), 0);
+		//chassis.arcade(Controller1.get_analog(ANALOG_LEFT_Y), Controller1.get_analog(ANALOG_RIGHT_X), 0);
 		
 		overheatWarning(FL);
         overheatWarning(TL);
