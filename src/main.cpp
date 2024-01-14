@@ -34,6 +34,7 @@ ADILED autoPuncherIndicator('H',1);
 bool blockerUp = false;
 int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
+bool autoLower;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -58,8 +59,8 @@ lemlib::Drivetrain_t drivetrain {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    35, // kP
-    55, // kD
+    31, // kP
+    53, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -125,7 +126,7 @@ void readyCata() {
 	CR.move(0);
 }
 
-void fireCata(int cataSpeed = 90) {
+void fireCata(int cataSpeed = 110) {
 
 	CR.move(cataSpeed);
 
@@ -185,7 +186,7 @@ void screenDisplay2() {
 
 void controllerScreen() {
 	while (true) {
-		Controller1.set_text(1,1, "CaSp:" + std::to_string(globalCataSpeed) + " AutoF:" + std::to_string(autoFireOn));
+		Controller1.set_text(1,1, "CS:" + std::to_string(globalCataSpeed) + " AF:" + std::to_string(autoFireOn) + " L:" + std::to_string(autoLower));
 		delay(100);
 	}
 }
@@ -237,9 +238,10 @@ void nearsideRisky() {
 }
 
 void nearsideSafe() {
-	autoFireOn = true;
 	chassis.setPose(-46,-55, 135);
 	chassis.moveTo(-56, -48, 145, 1000, false, false, 0, 0, 50);
+	CR.move(0);
+	autoFireOn = true;
 	chassis.moveTo(-53, -53, 145, 1000, false, true, 0, 0, 50);
 	rightWing.set_value(1);
 	delay(200);
@@ -253,40 +255,25 @@ void nearsideSafe() {
 	delay(200);
 	INT.move(-127);
 	chassis.moveTo(-34, -60, 90, 2000);
-	chassis.moveTo(-7, -59, 90, 2000);
+	chassis.moveTo(-16, -58, 90, 2000);
 	leftWing.set_value(1);
 }
 
 void nearsideRush() {
-
-	autoFireOn = false;
-	CR.move(120);
-	delay(500);
-	CR.move(0);
-	autoFireOn = true;
-
-	//rush middle and drop off alliance triball
-	chassis.setPose(-36, -62, 0);
-	chassis.moveTo(-30, -12, 0, 1500);
-	chassis.turnTo(-47, -12, 1000);
-	INT.move(-127);
-	delay(400);
-
-	chassis.turnTo(-30, -12, 1000);
-	INT.move(127);
-	chassis.moveTo(-30, -12, 0, 2000);
-	chassis.turnTo(-4, -12, 1000);
-	INT.move(-127);
+	chassis.setPose(34, -55, 0);
 	leftWing.set_value(1);
-	rightWing.set_value(1);
-	delay(400);
-	chassis.moveTo(-4, -12, 90, 1000);
-	chassis.turnTo(-45, -58, 1000);
-	chassis.moveTo(-45, -58, 2000, -135);
-	chassis.turnTo(-6, -59, 1000);
+	delay(300);
+	INT.move(127);
+	autoFireOn = true;
+	chassis.moveTo(-25, -8, 10, 1500);
+	chassis.moveTo(-42, -51, 15, 1500, false, false);
+	chassis.turnTo(-57, -42, 1000, false, true);
+	chassis.moveTo(-57, -42, 120, 1000, false, false);
+	chassis.moveTo(-58, -33, 180, 1000);
+	chassis.moveTo(-10, -61, 90, 1000);
 	INT.move(-127);
-	chassis.moveTo(-5, -59, 90, 2000);
-	INT.move(0);
+	chassis.moveTo(-10, -61, 90, 2500);
+
 }
 
 void fourBall() {
@@ -323,14 +310,14 @@ void fourBall() {
 void fiveBallMidRush() {
 	// release intake and set pose
 	chassis.setPose(47, -53, 320);
-	autoFireOn = true;
 
 	// hit alliance triball toward goal with right win
 	rightWing.set_value(1);
 
 	// grab central far triball, turn and score both central and central far
 	INT.move(127);
-	chassis.turnTo(9, -5, 1000);
+	chassis.turnTo(9, -5, 300);
+	autoFireOn = true;
 	chassis.moveTo(9, -5, 320, 300, false, true, 20);
 	autoFireOn = false;
 	rightWing.set_value(0);
@@ -340,8 +327,8 @@ void fiveBallMidRush() {
 	chassis.turnTo(40, -4, 250);
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(40, -4, 90, 1300, false, true, 20);
-	chassis.moveTo(32, -4, 90, 750, false, false);
+	chassis.moveTo(40, -2, 90, 1300, false, true, 20);
+	chassis.moveTo(32, -2, 90, 750, false, false);
 	leftWing.set_value(0);
 	rightWing.set_value(0);
 
@@ -349,8 +336,8 @@ void fiveBallMidRush() {
 	chassis.turnTo(13, -17, 1000);
 	INT.move(127);
 	chassis.moveTo(13, -15, 240, 1500);
-	chassis.turnTo(56, -46, 500);
-	chassis.moveTo(56, -46, 140, 2500);
+	chassis.turnTo(55, -48, 500);
+	chassis.moveTo(55, -48, 140, 2500);
 
 	// go back and knock out matchload
 	rightWing.set_value(1);
@@ -360,14 +347,14 @@ void fiveBallMidRush() {
 	chassis.turnTo(60, -34, 1000, false, true);
 
 	// tap in alliance, matchload and central safe
-	chassis.moveTo(61, -30, 200, 1000, false, false);
+	//chassis.moveTo(61, -30, 200, 1000, false, false);
 	BL.move(-127);
 	BR.move(-127);
 	TL.move(-127);
 	TR.move(-127);
 	FL.move(-127);
 	FR.move(-127);
-	delay(1000);
+	delay(600);
 	BL.move(20);
 	BR.move(20);
 	TL.move(20);
@@ -444,7 +431,7 @@ void skills() {
 	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
-	chassis.turnTo(46, -12, 1000, false, true);
+	chassis.turnTo(46, -9, 1000, false, true);
 	pros::delay(40000); // however long it takes to fire all triballs
 
 	// turn autofire on to keep cata down
@@ -462,13 +449,13 @@ void skills() {
 	chassis.moveTo(61, -43, 230, 1500, false, false);
 	chassis.turnTo(64, 0, 1000, false, true);
 	//chassis.moveTo(61, -32, 180, 2000, false, false, 0.6, 20);
-	BL.move(-100);
-	BR.move(-100);
-	TL.move(-100);
-	TR.move(-100);
-	FL.move(-100);
-	FR.move(-100);
-	delay(1000);
+	BL.move(-90);
+	BR.move(-90);
+	TL.move(-90);
+	TR.move(-90);
+	FL.move(-90);
+	FR.move(-90);
+	delay(1500);
 	chassis.setPose(61, -32, 180);
 	BL.move(20);
 	BR.move(20);
@@ -619,7 +606,8 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	autoFireOn = true;
+	autoFireOn = false;
+	CR.move(80);
 
     if(selector::auton == 1){nearsideSafe();} // safe
     if(selector::auton == 2){nearsideRisky();} // risky
@@ -650,10 +638,9 @@ void opcontrol() {
 	Task brainScreen(screenDisplay1);
 	Task controlllerScreenTask(controllerScreen);
 
-	CR.move(globalCataSpeed);
-
-	autoFireOn = false;
+	autoFireOn = true;
 	blockerUp = false;
+	autoLower = true;
 
     // Variables
     float driveSpeed = .9;
@@ -684,6 +671,15 @@ void opcontrol() {
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
 
+		if (autoLower == true && cataMotorOn == false && autoFireOn == false) {
+			if (OPT2.get_proximity() < 40) {
+				CR.move(90);
+			}
+			else {
+				CR.move(0);
+			}
+		}
+
 		// ******************************************
 		// CONTROLLER 1							   //
 		// ******************************************
@@ -709,7 +705,12 @@ void opcontrol() {
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
-			skills();
+			if (autoLower) {
+				autoLower = false;
+			}
+			else {
+				autoLower = true;
+			}
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
