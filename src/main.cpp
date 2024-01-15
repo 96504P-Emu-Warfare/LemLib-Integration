@@ -797,9 +797,9 @@ void opcontrol() {
 
 		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
 
-		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 600);
+		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 12);
 
-		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 600);
+		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 12);
 		
 		FL.move_velocity(left);
 		TL.move_velocity(left);
