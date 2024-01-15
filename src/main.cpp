@@ -62,7 +62,7 @@ lemlib::Drivetrain_t drivetrain {
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
     31, // kP
-    53, // kD
+    60, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -374,55 +374,64 @@ void sixBall() {
 
 	// move forward and intake the triball
 	INT.move(127);
-	chassis.moveTo(5, -59, -90, 1000);
+	chassis.moveTo(5, -59, -90, 10000);
 
 	// move back and knock out the alliance triball
-	chassis.moveTo(43, -59, -90, 2000, false, false, 0, 0);
+	chassis.moveTo(43, -59, -90, 20000, false, false, 0, 0);
 	rightWing.set_value(1);
-	chassis.turnTo(54, -48, 1000);
+	chassis.turnTo(51, -51, 10000);
 	INT.move(-127);
-	chassis.moveTo(54, -48, 20, 1000, false, true, 0, 0);
-	chassis.turnTo(60, 0, 1000);
+	chassis.moveTo(51, -51, 45, 10000, false, true, 0, 0);
+	chassis.turnTo(60, 0, 10000);
 
 	// knock in first 3 triballs
 	rightWing.set_value(0);
-	chassis.turnTo(62, -35, 1000);
+	chassis.turnTo(62, -35, 10000);
 	INT.move(-127);
 	delay(500);
-	chassis.turnTo(70, -24, 1000, false, true);
-	chassis.moveTo(62, -36, 180, 1000, false, false);
+	chassis.turnTo(70, -24, 10000, false, true);
+	chassis.moveTo(61, -32, 180, 10000, false, false);
 
 	// get safe mid ball
-	chassis.turnTo(47, -43, 1000);
-	chassis.moveTo(47, -43, 220, 1000);
+	chassis.turnTo(47, -43, 10000);
+	chassis.moveTo(47, -43, 230, 10000);
 	INT.move(127);
-	chassis.turnTo(7, -30, 1000);
-	INT.move(127);
+	chassis.turnTo(11, -26, 10000);
 	autoFireOn = true;
-	chassis.moveTo(7, -29, -70, 1500);
+	chassis.moveTo(11, -26, 295, 15000);
 	INT.move(0);
 
 	// roll safe mid ball toward goal	
-	chassis.turnTo(17, -21, 1000);
-	chassis.moveTo(17, -21, 90, 1000);
-	INT.move(-127);
-	delay(1500);
-	INT.move(127);
+	chassis.turnTo(24, -19, 10000);
+	chassis.moveTo(24, -19, 60, 300);
+	INT.move(-100);
+	chassis.moveTo(24, -19, 60, 5000);
 
 	// get center ball
-	chassis.turnTo(2, -3, 1000);
-	chassis.moveTo(2, -3, -30, 1000);
-	chassis.turnTo(48, -7, 1000);
-	INT.move(-127);
-	delay(400);
+	chassis.turnTo(11, -6, 10000);
+	INT.move(100);
+	chassis.moveTo(11, -6, 315, 10000);
+	chassis.turnTo(39, -5, 10000);
 
 	// knock in all balls
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.moveTo(40, -9, 90, 1000, false, true, 10);
+	INT.move(-100);
+	BL.move(127);
+	BR.move(127);
+	TL.move(127);
+	TR.move(127);
+	FL.move(127);
+	FR.move(127);
+	delay(1000);
 	leftWing.set_value(0);
 	rightWing.set_value(0);
-	chassis.moveTo(15, -25, 0, 1500, false, false);
+	BL.move(-20);
+	BR.move(-20);
+	TL.move(-20);
+	TR.move(-20);
+	FL.move(-20);
+	FR.move(-20);
 
 }
 
