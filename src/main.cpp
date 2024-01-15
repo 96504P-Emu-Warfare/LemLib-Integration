@@ -1,4 +1,6 @@
 #include "main.h"
+#include "display/lv_core/lv_obj.h"
+#include "display/lv_objx/lv_img.h"
 
 using namespace pros;
 
@@ -636,7 +638,15 @@ void autonomous() {
 void opcontrol() {
 
 	Task brainScreen(screenDisplay1);
-	Task controlllerScreenTask(controllerScreen);
+	Task controllerScreenTask(controllerScreen);
+
+	LV_IMG_DECLARE(BrainScreenIdle);
+	lv_obj_t *img = lv_img_create(lv_scr_act(), NULL);
+
+	// Code to set up brain screen idle instead of auton selector
+	/**
+	lv_img_set_src(img, &BrainScreenIdle);
+	lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);*/
 
 	autoFireOn = true;
 	blockerUp = false;
