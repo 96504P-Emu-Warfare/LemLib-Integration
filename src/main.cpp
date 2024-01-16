@@ -37,6 +37,7 @@ bool blockerUp = false;
 int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
 bool autoLower;
+bool competitionMode = false;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -603,7 +604,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+	competitionMode = true;
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -649,13 +652,12 @@ void opcontrol() {
 	Task brainScreen(screenDisplay1);
 	Task controllerScreenTask(controllerScreen);
 
-	LV_IMG_DECLARE(BrainScreenIdle);
-	lv_obj_t *img = lv_img_create(lv_scr_act(), NULL);
-
-	// Code to set up brain screen idle instead of auton selector
-	/**
-	lv_img_set_src(img, &BrainScreenIdle);
-	lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);*/
+	if (competitionMode) {
+		LV_IMG_DECLARE(BrainScreenIdle);
+		lv_obj_t *img = lv_img_create(lv_scr_act(), NULL);
+		lv_img_set_src(img, &BrainScreenIdle);
+		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
+	}
 
 	autoFireOn = true;
 	blockerUp = false;
