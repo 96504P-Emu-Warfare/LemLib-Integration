@@ -443,7 +443,7 @@ void skills() {
 	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
-	chassis.turnTo(46, -9, 1000, false, true);
+	chassis.turnTo(46, -8, 1000, false, true);
 	pros::delay(40000); // however long it takes to fire all triballs
 
 	// turn autofire on to keep cata down
