@@ -1,4 +1,6 @@
 #include "main.h"
+#include "display/lv_core/lv_obj.h"
+#include "display/lv_objx/lv_img.h"
 
 using namespace pros;
 
@@ -35,6 +37,7 @@ bool blockerUp = false;
 int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
 bool autoLower;
+bool competitionMode = false;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -61,6 +64,8 @@ lemlib::Drivetrain_t drivetrain {
 lemlib::ChassisController_t lateralController {
     35, // kP
     61, // kD
+    31, // kP
+    60, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -363,18 +368,23 @@ void sixBall() {
 	chassis.moveTo(5, -59, -90, 200);
 	autoFireOn = true;
 	chassis.moveTo(5, -59, -90, 10000);
+	chassis.moveTo(5, -59, -90, 10000);
 
 	// move back and knock out the alliance triball
-	chassis.moveTo(43, -59, -90, 2000, false, false, 0, 0);
+	chassis.moveTo(43, -59, -90, 20000, false, false, 0, 0);
 	rightWing.set_value(1);
 	chassis.turnTo(54, -48, 10000);
+	chassis.turnTo(51, -51, 10000);
 	INT.move(-127);
 	chassis.moveTo(54, -48, 20, 10000, false, true, 0, 0);
+	chassis.turnTo(60, 0, 10000);
+	chassis.moveTo(51, -51, 45, 10000, false, true, 0, 0);
 	chassis.turnTo(60, 0, 10000);
 
 	// knock in first 3 triballs
 	rightWing.set_value(0);
 	chassis.turnTo(59, -35, 10000);
+	chassis.turnTo(62, -35, 10000);
 	INT.move(-127);
 	delay(300);
 	chassis.turnTo(59, -28, 10000, false, true);
@@ -393,42 +403,50 @@ void sixBall() {
 	FL.move(20);
 	FR.move(20);
 	delay(300);
+	delay(500);
+	chassis.turnTo(70, -24, 10000, false, true);
+	chassis.moveTo(61, -32, 180, 10000, false, false);
 
 	// get safe mid ball
 	chassis.turnTo(47, -43, 10000);
-	chassis.moveTo(47, -43, 25, 10000);
+	chassis.moveTo(47, -43, 230, 10000);
 	INT.move(127);
-	chassis.turnTo(7, -30, 10000);
-	INT.move(127);
+	chassis.turnTo(11, -26, 10000);
 	autoFireOn = true;
-	chassis.moveTo(7, -29, -70, 15000);
+	chassis.moveTo(11, -26, 295, 15000);
 	INT.move(0);
 
 	// roll safe mid ball toward goal	
-	chassis.turnTo(17, -21, 10000);
-	chassis.moveTo(17, -21, 90, 10000);
-	INT.move(-127);
-	delay(1500);
-	INT.move(127);
+	chassis.turnTo(24, -19, 10000);
+	chassis.moveTo(24, -19, 60, 300);
+	INT.move(-100);
+	chassis.moveTo(24, -19, 60, 5000);
 
 	// get center ball
-	chassis.turnTo(0, -3, 10000);
-	chassis.moveTo(0, -3, -30, 10000);
-	chassis.turnTo(48, -7, 1000);
-	INT.move(-127);
-	delay(400);
+	chassis.turnTo(11, -6, 10000);
+	INT.move(100);
+	chassis.moveTo(11, -6, 315, 10000);
+	chassis.turnTo(39, -5, 10000);
 
 	// knock in all balls
 	leftWing.set_value(1);
 	rightWing.set_value(1);
-	chassis.turnTo(60, -10, 1000);
-	driveMove(100);
-	delay(800);
-	chassis.setPose(61, -32, 0);
-	driveMove(-80);
-	INT.move(127);
-	delay(300);
-	driveMove(0);
+	INT.move(-100);
+	BL.move(127);
+	BR.move(127);
+	TL.move(127);
+	TR.move(127);
+	FL.move(127);
+	FR.move(127);
+	delay(1000);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
+	BL.move(-20);
+	BR.move(-20);
+	TL.move(-20);
+	TR.move(-20);
+	FL.move(-20);
+	FR.move(-20);
 
 }
 
@@ -439,8 +457,11 @@ void skills() {
 	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
-	chassis.turnTo(46, -9, 1000, false, true);
-	pros::delay(37000); // however long it takes to fire all triballs
+	chassis.turnTo(46, -8, 1000, false, true);
+	pros::delay(40000); // however long it takes to fire all triballs
+
+	// turn autofire on to keep cata down
+	autoFireOn = true;
 
 	// turn and move backwards to other side
 	// pushing triballs along with robot
@@ -596,7 +617,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+	competitionMode = true;
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -640,7 +663,14 @@ void autonomous() {
 void opcontrol() {
 
 	Task brainScreen(screenDisplay1);
-	Task controlllerScreenTask(controllerScreen);
+	Task controllerScreenTask(controllerScreen);
+
+	if (competitionMode) {
+		LV_IMG_DECLARE(BrainScreenIdle);
+		lv_obj_t *img = lv_img_create(lv_scr_act(), NULL);
+		lv_img_set_src(img, &BrainScreenIdle);
+		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
+	}
 
 	autoFireOn = true;
 	blockerUp = false;
@@ -788,9 +818,9 @@ void opcontrol() {
 
 		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
 
-		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 600);
+		double left = (((drive * driveSpeed + turn * turnSpeed)) / 127 * 12);
 
-		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 600);
+		double right = (((drive * driveSpeed - turn * turnSpeed)) / 127 * 12);
 		
 		FL.move_velocity(left);
 		TL.move_velocity(left);
