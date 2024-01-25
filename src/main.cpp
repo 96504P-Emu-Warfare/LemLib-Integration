@@ -355,28 +355,11 @@ void sixBallMidRush() {
 	FR.move(120);
 	BR.move(120);
 	delay(700);
-	chassis.setPose(60, -30, 0);
-	driveMove(-80);
-	delay(300);
 	driveMove(0);
-	INT.move(127);
+	chassis.setPose(60, -30, 0);
 
-	// move back to get triball under elevation bar
-	chassis.turnTo(42, -64, 1000);
-	chassis.moveTo(42, -64, 240, 1200);
-	chassis.turnTo(11, -67, 1000);
-	chassis.moveTo(11, -67, 270, 1300);
-	delay(300);
-
-	// back up and score triballs
-	chassis.turnTo(39, -58, 1000, false, true);
-	driveMove(-80);
-	delay(500);
-	chassis.moveTo(39, -58, 270, 600, false, false);
-	chassis.turnTo(61, -32, 1000);
-	driveMove(127);
-	delay(1000);
-	driveMove(-20);
+	// redo 6th ball!
+	
 }
 
 void sixBall() {
