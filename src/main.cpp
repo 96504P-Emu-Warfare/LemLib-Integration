@@ -63,7 +63,7 @@ lemlib::Drivetrain_t drivetrain {
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
     40, // kP
-    62, // kD
+    66, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -73,8 +73,8 @@ lemlib::ChassisController_t lateralController {
  
 // turning PID
 lemlib::ChassisController_t angularController {
-    8, // kP
-    45, // kD
+    7, // kP
+    40, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
     3, // largeErrorRange
@@ -129,7 +129,7 @@ void readyCata() {
 	CR.move(0);
 }
 
-void fireCata(int cataSpeed = 110) {
+void fireCata(int cataSpeed = 127) {
 
 	CR.move(cataSpeed);
 
@@ -266,9 +266,7 @@ void nearsideSafe() {
 	delay(200);
 	INT.move(-127);
 	chassis.moveTo(-34, -60, 90, 2000);
-	chassis.moveTo(-17, -55, 90, 2000);
-	leftWing.set_value(1);
-	chassis.turnTo(64, -75, 1000);
+	chassis.moveTo(-12, -55, 90, 3000);
 }
 
 void nearsideRush() {
@@ -279,9 +277,8 @@ void nearsideRush() {
 
 	// grab central far triball, turn and score both central and central far
 	INT.move(127);
+	chassis.moveTo(-12, -8, 30, 300, false, true, 20);
 	autoFireOn = true;
-	chassis.moveTo(-12, -6, 30, 300, false, true, 20);
-	autoFireOn = false;
 	leftWing.set_value(0);
 	chassis.moveTo(-10, -6, 30, 2500, false, true, 5);
 	delay(300);
@@ -299,8 +296,8 @@ void nearsideRush() {
 	rightWing.set_value(1);
 	chassis.turnTo(-9, -57, 1000);
 	rightWing.set_value(0);
+	INT.move(-127);
 	chassis.moveTo(-8, -57, 90, 2500);
-	leftWing.set_value(1);
 	chassis.turnTo(20, -65, 1000);
 
 }
@@ -315,12 +312,12 @@ void sixBallMidRush() {
 
 	// grab central far triball, turn and score both central and central far
 	INT.move(127);
-	autoFireOn = true;
-	chassis.moveTo(9, -5, 320, 300, false, true, 20);
-	autoFireOn = false;
+	chassis.moveTo(9, -5, 320, 500, false, true, 20);
 	rightWing.set_value(0);
 	leftWing.set_value(0);
-	chassis.moveTo(9, -5, 320, 2800, false, true, 5);
+	CR.move(0);
+	autoFireOn = true;
+	chassis.moveTo(9, -5, 320, 2400, false, true, 5);
 	chassis.turnTo(40, 2, 900);
 	INT.move(-127);
 	leftWing.set_value(1);
@@ -335,9 +332,9 @@ void sixBallMidRush() {
 	rightWing.set_value(0);
 
 	// grab central safe triball
-	chassis.turnTo(11, -18, 1000);
+	chassis.turnTo(11, -19, 1000);
 	INT.move(127);
-	chassis.moveTo(11, -18, 225, 1500);
+	chassis.moveTo(11, -19, 225, 1500);
 	chassis.turnTo(54, -49, 700);
 	chassis.moveTo(54, -49, 125, 2500);
 
@@ -347,16 +344,25 @@ void sixBallMidRush() {
 	rightWing.set_value(0);
 	chassis.turnTo(57, -30, 1000);
 	INT.move(-127);
+	delay(300);
+	chassis.turnTo(57, -30, 1000, false, true);
 
 	// tap in alliance, matchload and central safe
 	//chassis.moveTo(61, -30, 200, 1000, false, false);
-	driveMove(105);
-	TR.move(120);
-	FR.move(120);
-	BR.move(120);
+	driveMove(-105);
+	TR.move(-120);
+	FR.move(-120);
+	BR.move(-120);
 	delay(700);
 	driveMove(0);
-	chassis.setPose(60, -30, 0);
+	chassis.setPose(60, -30, 90);
+	driveMove(50);
+	delay(500);
+	driveMove(-60);
+	delay(600);
+	driveMove(20);
+	delay(1000);
+	driveMove(0);
 
 	// redo 6th ball!
 	
@@ -371,8 +377,8 @@ void sixBall() {
 
 	// move forward and intake the triball
 	INT.move(127);
-	chassis.moveTo(5, -59, -90, 200);
-	autoFireOn = true;
+	chassis.moveTo(5, -59, -90, 600);
+	autoLower = true;
 	chassis.moveTo(5, -59, -90, 10000);
 
 	// move back and knock out the alliance triball
@@ -446,8 +452,8 @@ void skills() {
 	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
-	chassis.turnTo(46, -8, 1000, false, true);
-	pros::delay(40000); // however long it takes to fire all triballs
+	chassis.turnTo(46, -9, 1000, false, true);
+	pros::delay(35000); // however long it takes to fire all triballs
 
 	// turn autofire on to keep cata down
 	autoFireOn = true;
@@ -514,6 +520,8 @@ void skills() {
 	driveMove(-20);
 	delay(500);
 	driveMove(0);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 
 
 
@@ -625,9 +633,9 @@ void opcontrol() {
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
 
-	autoFireOn = true;
+	autoFireOn = false;
 	blockerUp = false;
-	autoLower = false;
+	autoLower = true;
 
     // Variables
     float driveSpeed = .9;
