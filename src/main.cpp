@@ -119,7 +119,7 @@ bool triballOnKicker() {
 void readyCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while (OPT2.get_proximity() < 40) {
-		delay(5);
+		delay(10);
 	}
 	CR.move(0);
 }
@@ -127,7 +127,7 @@ void readyCata(int cataSpeed = 127) {
 void fireCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while(triballOnKicker()) {
-		delay(5);
+		delay(10);
 	}
 	CR.move(0);
 }
@@ -142,7 +142,7 @@ void autoPuncher() {
 			}
 			delay(10);
 		}
-		delay(20);
+		delay(10);
 	}
 }
 
@@ -152,7 +152,7 @@ void screenDisplay1() {
         lcd::print(0, "x: %f", pose.x); 
         lcd::print(1, "y: %f", pose.y); 
         lcd::print(2, "heading: %f", pose.theta); 
-        delay(20);
+        delay(10);
     }
 }
 
@@ -160,7 +160,7 @@ void screenDisplay2() {
     while (true) {
         lcd::print(0, "hue: %f", OPT2.get_hue()); 
 		lcd::print(1, "distance: %d", OPT2.get_proximity()); 
-		delay(20);
+		delay(10);
     }
 }
 
@@ -736,6 +736,6 @@ void opcontrol() {
         overheatWarning(CR);
         overheatWarning(INT);
 
-		delay(20);
+		delay(10);
 	}
 }
