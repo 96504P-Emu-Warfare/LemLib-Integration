@@ -123,7 +123,7 @@ bool cataIsReadied() {
 //spin cata until readied
 void readyCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
-	while (!cataIsReadied) {
+	while (!cataIsReadied()) {
 		delay(10);
 	}
 	CR.move(0);
@@ -147,6 +147,17 @@ void autoPuncher() {
 				fireCata();
 				readyCata();
 			}
+			delay(10);
+		}
+		delay(10);
+	}
+}
+
+//if toggled on, automatically lower/ready cata
+void autoLower() {
+	while (true) {
+		while (autoLower) {
+			if (!cataIsReadied()) {readyCata()} //if statement not required but maybe better?
 			delay(10);
 		}
 		delay(10);
@@ -535,6 +546,7 @@ void initialize() {
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
 	Task autoPuncherTask(autoPuncher);
+	Task autoLowerTask(autoLower);
 	Task ledUpdaterTask(ledUpdater);
 }
 
@@ -638,21 +650,6 @@ void opcontrol() {
 	*/
 
 	while (true) {
-
-        // ******************************************
-		// ROBOT FUNCTIONS						   //
-		// ******************************************
-
-		//autolower; modified readyCata function for use in a while loop
-		if (autoLower && !cataMotorOn && !autoFireOn) {
-			if (!cataIsReadied) {
-				CR.move(127);
-			}
-			else {
-				CR.move(0);
-			}
-		}
-
 		// ******************************************
 		// CONTROLLER 1							   //
 		// ******************************************
