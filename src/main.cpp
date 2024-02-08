@@ -545,6 +545,8 @@ void initialize() {
 	OPT1.set_led_pwm(30);
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
+	//Task brainScreen(screenDisplay1)
+	//Task controllerScreenTask(controllerScreen);
 	Task autoPuncherTask(autoPuncher);
 	Task autoLowerTask(autoLower);
 	Task ledUpdaterTask(ledUpdater);
