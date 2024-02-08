@@ -282,11 +282,11 @@ void nearsideRisky() {
 	chassis.setPose(-44,-59, 135);
 	chassis.moveTo(-56, -48, 135, 1000, false, false, 0, 0, 50);
 	chassis.moveTo(-53, -53, 135, 1000, false, true, 0, 0, 50);
-	rightWing.set_value(true);
+	rightWing.set_value(1);
 	delay(200);
 	chassis.turnTo(0, 0, 1000);
 	chassis.turnTo(-60, 0, 2000);
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	delay(200);
 
 	INT.move(-127); // outtake
@@ -304,10 +304,10 @@ void nearsideRisky() {
 	chassis.turnTo(40, -8, 2000);
 
 	INT.move(-127); // outtake
-	leftWing.set_value(true);
-	rightWing.set_value(true);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
 	chassis.moveTo(-8, -8, 90, 1000, false, true, 0, 0.6, 40);
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	chassis.moveTo(-8, -40, 180, 1500, false, true, 5.0);
 	INT.move(0);
 	chassis.turnTo(-23, -63, 1000, false, false, 20);
@@ -319,11 +319,11 @@ void nearsideSafe() {
 	CR.move(0);
 	autoFireOn = true;
 	chassis.moveTo(-53, -53, 145, 1000, false, true, 0, 0, 50);
-	rightWing.set_value(true);
+	rightWing.set_value(1);
 	delay(200);
 	chassis.turnTo(0, 0, 1000);
 	chassis.turnTo(-60, -40, 2000, false, true);
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	delay(200);
 
 	chassis.moveTo(-56, -47, 155, 2000, false, false, 0);
@@ -338,13 +338,13 @@ void nearsideRush() {
 	chassis.setPose(-45, -55, 45);
 
 	// hit alliance triball toward goal with left wing
-	rightWing.set_value(true);
+	rightWing.set_value(1);
 
 	// grab central far triball
 	INT.move(127);
 	chassis.moveTo(-11, -8, 30, 300, false, true, 35);
 	autoFireOn = true;
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	chassis.moveTo(-11, -8, 30, 2500, false, true, 35);
 	delay(300);
 	INT.move(60);
@@ -357,16 +357,16 @@ void nearsideRush() {
 
 	// send match load and central triball down alley
 	chassis.turnTo(-22, -81, 1000);
-	rightWing.set_value(true);
+	rightWing.set_value(1);
 	INT.move(-127);
 	delay(300);
 	chassis.turnTo(-20, -56, 1000);
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	chassis.moveTo(-10, -58, 90, 2000);
 	driveMove(0);
-	leftWing.set_value(true);
+	leftWing.set_value(1);
 	delay(300);
-	leftWing.set_value(false);
+	leftWing.set_value(0);
 }
 
 void fiveBallMidrush() {
@@ -378,29 +378,29 @@ void sixBallMidrush() {
 	chassis.setPose(47, -53, 320);
 
 	// hit alliance triball toward goal with right win
-	rightWing.set_value(true);
-	leftWing.set_value(true);
+	rightWing.set_value(1);
+	leftWing.set_value(1);
 
 	// grab central far triball, turn and score both central and central far
 	INT.move(127);
 	chassis.moveTo(10, -6, 320, 200, false, true, 20);
-	rightWing.set_value(false);
-	leftWing.set_value(false);
+	rightWing.set_value(0);
+	leftWing.set_value(0);
 	CR.move(0);
 	autoFireOn = true;
 	chassis.moveTo(10, -6, 320, 2400, false, true, 20);
 	chassis.turnTo(40, -2, 1000);
 	INT.move(-127);
-	leftWing.set_value(true);
-	rightWing.set_value(true);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
 	driveMove(110);
 	delay(800);
 	chassis.setPose(41, -2, 90);
 	driveMove(-80);
 	delay(300);
 	driveMove(0);
-	leftWing.set_value(false);
-	rightWing.set_value(false);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 
 	// grab central safe triball
 	chassis.turnTo(14, -17, 1000);
@@ -411,9 +411,9 @@ void sixBallMidrush() {
 	chassis.moveTo(59, -45, 125, 2500, false, true, 35);
 
 	// go back and knock out matchload
-	rightWing.set_value(true);
+	rightWing.set_value(1);
 	chassis.turnTo(45, -24, 1000);
-	rightWing.set_value(false);
+	rightWing.set_value(0);
 	chassis.turnTo(6, -55, 1000);
 	INT.move(-127);
 	delay(300);
@@ -477,8 +477,8 @@ void skills() {
 
 	// first front push 
 	chassis.turnTo(48, -10, 1000);
-	leftWing.set_value(true);
-	rightWing.set_value(true);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
 	// chassis.moveTo(40, -5, 90, 1500, false, true, 20);
 	driveMove(100);
 	delay(1000);
@@ -487,20 +487,20 @@ void skills() {
 	delay(1000);
 	driveMove(0);
 	delay(100);
-	leftWing.set_value(false);
-	rightWing.set_value(false);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 
 	// back up and second push
 	chassis.moveTo(11, -11, 90, 1500, false, false);
 	chassis.turnTo(11, 29, 1000);
 	chassis.moveTo(11, 34, 0, 1500);
 	chassis.turnTo(45, 0, 1000);
-	leftWing.set_value(true);
-	rightWing.set_value(true);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
 	driveMove(100);
 	delay(1200);
-	leftWing.set_value(false);
-	rightWing.set_value(false);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
 	chassis.setPose(40, 11, 90);
 	driveMove(-60);
 	delay(700);
@@ -519,8 +519,8 @@ ASSET(skillspath1_txt);
 
 void skills2() {
 	chassis.follow(skillspath1_txt, 15000, 4);
-	leftWing.set_value(true);
-	rightWing.set_value(true);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
 	chassis.moveTo(40, 0, 90, 2000, false, true, 100, 0);
 }
 
