@@ -106,6 +106,7 @@ lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensor
 
 void overheatWarning(Motor motor) {
     if (motor.get_port() > 0 && motor.get_temperature() >= 74) {
+		//print overheat statement in the form "OVERHEAT (motor, temp)"
         Controller1.set_text(2, 4, "OVERHEAT (" + std::to_string(motor.get_port()) + ", " + std::to_string(motor.get_temperature()) + ")");
     }
 }
@@ -120,6 +121,7 @@ bool cataIsReadied() {
     return OPT2.get_proximity() > 40;
 }
 
+//spin cata until readied
 void readyCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while (!cataIsReadied) {
@@ -128,6 +130,7 @@ void readyCata(int cataSpeed = 127) {
 	CR.move(0);
 }
 
+//spin cata until triball is off of robot
 void fireCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while(triballOnKicker()) {
@@ -136,6 +139,7 @@ void fireCata(int cataSpeed = 127) {
 	CR.move(0);
 }
 
+//if toggled on, automatically fire detected triballs in puncher and reset
 void autoPuncher() {
 	readyCata();
 	while (true) {
@@ -602,17 +606,23 @@ void opcontrol() {
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
 
+	//reset old varaibles
 	autoFireOn = false;
 	blockerUp = false;
 	autoLower = true;
-
-    // Variables
-    float driveSpeed = .9;
+	// initialize new variables
+    float moveSpeed = .9;
     float turnSpeed = .5;
 	bool leftWingOut = false;
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
+	//declare new variables to be used later for drivetrain code
+	float move;
+	float turn;
+	float left;
+	float right;
 
+	//set drive motors to coast
 	FL.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	FR.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	BL.set_brake_mode(E_MOTOR_BRAKE_COAST);
@@ -620,6 +630,7 @@ void opcontrol() {
 	TL.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	TR.set_brake_mode(E_MOTOR_BRAKE_COAST);
 
+	//set cata and intake motors to brake
 	CR.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 
@@ -635,6 +646,7 @@ void opcontrol() {
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
 
+		//autolower; modified readyCata function for use in a while loop
 		if (autoLower && !cataMotorOn && !autoFireOn) {
 			if (!cataIsReadied) {
 				CR.move(127);
@@ -648,6 +660,7 @@ void opcontrol() {
 		// CONTROLLER 1							   //
 		// ******************************************
 
+		//toggle cata on/off with "A" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (autoFireOn) {
 				autoFireOn = false;
@@ -662,28 +675,34 @@ void opcontrol() {
 			}
 		}
 
+		//toggle autoPuncher with "B" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_B)) {
 			autoFireOn = !autoFireOn
 		}
 
+		//toggle autoLower with "Y" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
 			autoLower = !autoLower
 		}
 
+		//toggle blocker with "X" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
 			blockerUp = !blockerUp
 			blocker.set_value(blockerUp);
 		}
 
+		//for testing (not for match use); run selected autonomous with "DOWN" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN)) {
 			autonomous();
 		}
 
+		//decrease cata speed with "LEFT" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
 			if (globalCataSpeed > 70) {globalCataSpeed -= 5;}
 		}
 
+		//increase cata speed with "LEFT" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
 			globalCataSpeed += 5;
 			if (globalCataSpeed < 125) {globalCataSpeed += 5;}
@@ -694,16 +713,19 @@ void opcontrol() {
 			chassis.turnTo(100, 0, 2000);
 		}
 
+		//toggle left wing with "L2" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
 			leftWingOut = !leftWingOut;
 			leftWing.set_value(leftWingOut);
 		}
 
+		//toggle right wing with "L1" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L1)){
 			rightWingOut = !rightWingOut;
 			rightWing.set_value(rightWingOut);
 		}
 
+		//intake if holding R1, outtake if holding R2
 		if (Controller1.get_digital(E_CONTROLLER_DIGITAL_R2)){
 			INT.move(-127);
 		}
@@ -714,23 +736,20 @@ void opcontrol() {
 			INT.move(0);
 		}
 
-		// Double arcade drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
-		float drive = Controller1.get_analog(ANALOG_LEFT_Y);
-		float turn = Controller1.get_analog(ANALOG_RIGHT_X);
-		float left = (((drive * driveSpeed + turn * turnSpeed)));
-		float right = (((drive * driveSpeed - turn * turnSpeed)));
-		
+		// Double arcade drive controls - left joystick controls forward/backward movement, right joystick controls turning
+		move = Controller1.get_analog(ANALOG_LEFT_Y);
+		turn = Controller1.get_analog(ANALOG_RIGHT_X);
+		left = (move * moveSpeed + turn * turnSpeed);
+		right = (move * moveSpeed - turn * turnSpeed);
+		//move drivetrain motors
 		FL.move(left);
 		TL.move(left);
 		BL.move(left);
 		FR.move(right);
 		TR.move(right);
 		BR.move(right);   
-		//**/
 
-		// Lem drive control, basically the same as above with a function controller to add curve to drive, using the equation y=ax^{3}+(1-a)x, where a is the changed variable
-		//chassis.arcade(Controller1.get_analog(ANALOG_LEFT_Y), Controller1.get_analog(ANALOG_RIGHT_X), 0);
-		
+		//overheating warnings for all motors
 		overheatWarning(FL);
         overheatWarning(TL);
         overheatWarning(BL);
