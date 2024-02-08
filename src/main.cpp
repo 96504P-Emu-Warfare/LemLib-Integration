@@ -6,7 +6,6 @@
 #include <vector>
 #include <list>
 
-
 using namespace pros;
 
 /*****************************************
@@ -51,9 +50,6 @@ Optical OPT1(4);
 Optical OPT2(9);
 
 Imu Inr(8);
-
-int triballsFired = 0;
-
 
 lemlib::Drivetrain_t drivetrain {
 	&leftMotors,
@@ -117,18 +113,11 @@ void overheatWarning(Motor motor) {
 bool autoFireOn;
 
 bool triballOnKicker() {
-	//if detect triball green color on kicker
-    double hue1 = OPT1.get_hue();
-    if (OPT1.get_proximity() > 250) { //hue1 > 80 && hue1 < 95 && 
-        return true;
-    }
-    return false;
+    return OPT1.get_proximity() > 250;
 }
 
-void readyCata() {
-
-	CR.move(127);
-
+void readyCata(int cataSpeed = 127) {
+	CR.move(cataSpeed);
 	while (OPT2.get_proximity() < 40) {
 		delay(5);
 	}
@@ -136,54 +125,42 @@ void readyCata() {
 }
 
 void fireCata(int cataSpeed = 127) {
-
 	CR.move(cataSpeed);
-
 	while(triballOnKicker()) {
-
 		delay(5);
 	}
-
 	CR.move(0);
-
 }
 
 void autoPuncher() {
-
+	readyCata();
 	while (true) {
-
 		while (autoFireOn) {
-				
-			readyCata();
-
 			if (triballOnKicker()) {
 				fireCata();
-				triballsFired++;
+				readyCata();
 			}
-
 			delay(10);
 		}
-
-	delay(20);
-
+		delay(20);
 	}
 }
 
 void screenDisplay1() {
     while (true) {
         lemlib::Pose pose = chassis.getPose(); 
-        pros::lcd::print(0, "x: %f", pose.x); 
-        pros::lcd::print(1, "y: %f", pose.y); 
-        pros::lcd::print(2, "heading: %f", pose.theta); 
-        pros::delay(20);
+        lcd::print(0, "x: %f", pose.x); 
+        lcd::print(1, "y: %f", pose.y); 
+        lcd::print(2, "heading: %f", pose.theta); 
+        delay(20);
     }
 }
 
 void screenDisplay2() {
     while (true) {
-        pros::lcd::print(0, "hue: %f", OPT2.get_hue()); 
-		pros::lcd::print(1, "distance: %d", OPT2.get_proximity()); 
-		pros::delay(20);
+        lcd::print(0, "hue: %f", OPT2.get_hue()); 
+		lcd::print(1, "distance: %d", OPT2.get_proximity()); 
+		delay(20);
     }
 }
 
@@ -203,7 +180,7 @@ void driveMove(int power) {
 	FR.move(power);
 }
 
-// RGB CONTROL
+// RGB CONTROL BELOW
 
 void ledUpdater() {
 	while(true){
@@ -287,11 +264,11 @@ void nearsideRisky() {
 	chassis.setPose(-44,-59, 135);
 	chassis.moveTo(-56, -48, 135, 1000, false, false, 0, 0, 50);
 	chassis.moveTo(-53, -53, 135, 1000, false, true, 0, 0, 50);
-	rightWing.set_value(1);
+	rightWing.set_value(true);
 	delay(200);
 	chassis.turnTo(0, 0, 1000);
 	chassis.turnTo(-60, 0, 2000);
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	delay(200);
 
 	INT.move(-127); // outtake
@@ -309,10 +286,10 @@ void nearsideRisky() {
 	chassis.turnTo(40, -8, 2000);
 
 	INT.move(-127); // outtake
-	leftWing.set_value(1);
-	rightWing.set_value(1);
+	leftWing.set_value(true);
+	rightWing.set_value(true);
 	chassis.moveTo(-8, -8, 90, 1000, false, true, 0, 0.6, 40);
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	chassis.moveTo(-8, -40, 180, 1500, false, true, 5.0);
 	INT.move(0);
 	chassis.turnTo(-23, -63, 1000, false, false, 20);
@@ -324,11 +301,11 @@ void nearsideSafe() {
 	CR.move(0);
 	autoFireOn = true;
 	chassis.moveTo(-53, -53, 145, 1000, false, true, 0, 0, 50);
-	rightWing.set_value(1);
+	rightWing.set_value(true);
 	delay(200);
 	chassis.turnTo(0, 0, 1000);
 	chassis.turnTo(-60, -40, 2000, false, true);
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	delay(200);
 
 	chassis.moveTo(-56, -47, 155, 2000, false, false, 0);
@@ -343,13 +320,13 @@ void nearsideRush() {
 	chassis.setPose(-45, -55, 45);
 
 	// hit alliance triball toward goal with left wing
-	rightWing.set_value(1);
+	rightWing.set_value(true);
 
 	// grab central far triball
 	INT.move(127);
 	chassis.moveTo(-11, -8, 30, 300, false, true, 35);
 	autoFireOn = true;
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	chassis.moveTo(-11, -8, 30, 2500, false, true, 35);
 	delay(300);
 	INT.move(60);
@@ -362,16 +339,16 @@ void nearsideRush() {
 
 	// send match load and central triball down alley
 	chassis.turnTo(-22, -81, 1000);
-	rightWing.set_value(1);
+	rightWing.set_value(true);
 	INT.move(-127);
 	delay(300);
 	chassis.turnTo(-20, -56, 1000);
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	chassis.moveTo(-10, -58, 90, 2000);
 	driveMove(0);
-	leftWing.set_value(1);
+	leftWing.set_value(true);
 	delay(300);
-	leftWing.set_value(0);
+	leftWing.set_value(false);
 }
 
 void fiveBallMidrush() {
@@ -383,29 +360,29 @@ void sixBallMidrush() {
 	chassis.setPose(47, -53, 320);
 
 	// hit alliance triball toward goal with right win
-	rightWing.set_value(1);
-	leftWing.set_value(1);
+	rightWing.set_value(true);
+	leftWing.set_value(true);
 
 	// grab central far triball, turn and score both central and central far
 	INT.move(127);
 	chassis.moveTo(10, -6, 320, 200, false, true, 20);
-	rightWing.set_value(0);
-	leftWing.set_value(0);
+	rightWing.set_value(false);
+	leftWing.set_value(false);
 	CR.move(0);
 	autoFireOn = true;
 	chassis.moveTo(10, -6, 320, 2400, false, true, 20);
 	chassis.turnTo(40, -2, 1000);
 	INT.move(-127);
-	leftWing.set_value(1);
-	rightWing.set_value(1);
+	leftWing.set_value(true);
+	rightWing.set_value(true);
 	driveMove(110);
 	delay(800);
 	chassis.setPose(41, -2, 90);
 	driveMove(-80);
 	delay(300);
 	driveMove(0);
-	leftWing.set_value(0);
-	rightWing.set_value(0);
+	leftWing.set_value(false);
+	rightWing.set_value(false);
 
 	// grab central safe triball
 	chassis.turnTo(14, -17, 1000);
@@ -416,9 +393,9 @@ void sixBallMidrush() {
 	chassis.moveTo(59, -45, 125, 2500, false, true, 35);
 
 	// go back and knock out matchload
-	rightWing.set_value(1);
+	rightWing.set_value(true);
 	chassis.turnTo(45, -24, 1000);
-	rightWing.set_value(0);
+	rightWing.set_value(false);
 	chassis.turnTo(6, -55, 1000);
 	INT.move(-127);
 	delay(300);
@@ -482,8 +459,8 @@ void skills() {
 
 	// first front push 
 	chassis.turnTo(48, -10, 1000);
-	leftWing.set_value(1);
-	rightWing.set_value(1);
+	leftWing.set_value(true);
+	rightWing.set_value(true);
 	//chassis.moveTo(40, -5, 90, 1500, false, true, 20);
 	driveMove(100);
 	delay(1000);
@@ -492,20 +469,20 @@ void skills() {
 	delay(1000);
 	driveMove(0);
 	delay(100);
-	leftWing.set_value(0);
-	rightWing.set_value(0);
+	leftWing.set_value(false);
+	rightWing.set_value(false);
 
 	// back up and second push
 	chassis.moveTo(11, -11, 90, 1500, false, false);
 	chassis.turnTo(11, 29, 1000);
 	chassis.moveTo(11, 34, 0, 1500);
 	chassis.turnTo(45, 0, 1000);
-	leftWing.set_value(1);
-	rightWing.set_value(1);
+	leftWing.set_value(true);
+	rightWing.set_value(true);
 	driveMove(100);
 	delay(1200);
-	leftWing.set_value(0);
-	rightWing.set_value(0);
+	leftWing.set_value(false);
+	rightWing.set_value(false);
 	chassis.setPose(40, 11, 90);
 	driveMove(-60);
 	delay(700);
@@ -524,8 +501,8 @@ ASSET(skillspath1_txt);
 
 void skills2() {
 	chassis.follow(skillspath1_txt, 15000, 4);
-	leftWing.set_value(1);
-	rightWing.set_value(1);
+	leftWing.set_value(true);
+	rightWing.set_value(true);
 	chassis.moveTo(40, 0, 90, 2000, false, true, 100, 0);
 }
 
@@ -598,8 +575,6 @@ void autonomous() {
     if(selector::auton == -2){fiveBallMidrush();} // 6 ball
     if(selector::auton == -3){sixBallMidrush();} // 5 ball
     if(selector::auton == 0){skills();} // skills
-	
-	autoFireOn = false;
 }
 
 /**
@@ -616,10 +591,6 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-
-	//Task brainScreen(screenDisplay1);
-	//Task controllerScreenTask(controllerScreen);
-
 	if (competitionMode) {
 		LV_IMG_DECLARE(BrainScreenIdle);
 		lv_obj_t *img = lv_img_create(lv_scr_act(), NULL);
@@ -638,23 +609,21 @@ void opcontrol() {
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
 
-	//chassis.motorsStop();
+	FL.set_brake_mode(E_MOTOR_BRAKE_COAST);
+	FR.set_brake_mode(E_MOTOR_BRAKE_COAST);
+	BL.set_brake_mode(E_MOTOR_BRAKE_COAST);
+	BR.set_brake_mode(E_MOTOR_BRAKE_COAST);
+	TL.set_brake_mode(E_MOTOR_BRAKE_COAST);
+	TR.set_brake_mode(E_MOTOR_BRAKE_COAST);
 
-	FL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-	FR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-	BL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-	BR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-	TL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-	TR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
-
-	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+	CR.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
+	INT.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 
 	flow("0xFF0000", "FF0000");
 
-	/**
+	/*
 	 * BUTTON INPUT SYSTEM
-	 */
+	*/
 
 	while (true) {
 
@@ -662,9 +631,9 @@ void opcontrol() {
 		// ROBOT FUNCTIONS						   //
 		// ******************************************
 
-		if (autoLower == true && cataMotorOn == false && autoFireOn == false) {
+		if (autoLower && !cataMotorOn && !autoFireOn) {
 			if (OPT2.get_proximity() < 40) {
-				CR.move(90);
+				CR.move(127);
 			}
 			else {
 				CR.move(0);
@@ -680,44 +649,27 @@ void opcontrol() {
 				autoFireOn = false;
 				cataMotorOn = false;
 			}
-			if (cataMotorOn == false) {
+			cataMotorOn = !cataMotorOn
+			if (cataMotorOn) {
 				CR.move(globalCataSpeed);
-				cataMotorOn = true;
 			}
 			else {
 				CR.move(0);
-				cataMotorOn = false;
 			}
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_B)) {
-			if (autoFireOn) {
-				autoFireOn = false;
-			}
-			else {
-				autoFireOn = true;
-			}
+			autoFireOn = !autoFireOn
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
-			if (autoLower) {
-				autoLower = false;
-			}
-			else {
-				autoLower = true;
-			}
+			autoLower = !autoLower
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
-			if (blockerUp == false) {
-				blockerUp = true;
-				blocker.set_value(1);
-			}
-			else {
-				blockerUp = false;
-				blocker.set_value(0);
-			}
+			blockerUp = !blockerUp
+			blocker.set_value(blockerUp);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN)) {
@@ -725,13 +677,12 @@ void opcontrol() {
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
-			globalCataSpeed -= 5;
-			if (globalCataSpeed <= 70) {globalCataSpeed = 70;}
+			if (globalCataSpeed > 70) {globalCataSpeed -= 5;}
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
 			globalCataSpeed += 5;
-			if (globalCataSpeed >= 125) {globalCataSpeed = 125;}
+			if (globalCataSpeed < 125) {globalCataSpeed += 5;}
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_UP)) {
@@ -740,25 +691,13 @@ void opcontrol() {
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
-			if (leftWingOut == false) {
-				leftWing.set_value(1);
-				leftWingOut = true;
-			}
-			else {
-				leftWing.set_value(0);
-				leftWingOut = false;
-			}
+			leftWingOut = !leftWingOut;
+			leftWing.set_value(leftWingOut);
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L1)){
-			if (rightWingOut == false) {
-				rightWing.set_value(1);
-				rightWingOut = true;
-			}
-			else {
-				rightWing.set_value(0);
-				rightWingOut = false;
-			}
+			rightWingOut = !rightWingOut;
+			rightWing.set_value(rightWingOut);
 		}
 
 		if (Controller1.get_digital(E_CONTROLLER_DIGITAL_R2)){
@@ -771,14 +710,11 @@ void opcontrol() {
 			INT.move(0);
 		}
 
-		// Simple linear drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
-		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
-
-		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
-
-		double left = (((drive * driveSpeed + turn * turnSpeed)));
-
-		double right = (((drive * driveSpeed - turn * turnSpeed)));
+		// Double arcade drive controls, based on the left and right sides and based on the analog system out of 127 multiplied by the RPM of the drives
+		float drive = Controller1.get_analog(ANALOG_LEFT_Y);
+		float turn = Controller1.get_analog(ANALOG_RIGHT_X);
+		float left = (((drive * driveSpeed + turn * turnSpeed)));
+		float right = (((drive * driveSpeed - turn * turnSpeed)));
 		
 		FL.move(left);
 		TL.move(left);
@@ -800,6 +736,6 @@ void opcontrol() {
         overheatWarning(CR);
         overheatWarning(INT);
 
-		pros::delay(20);
+		delay(20);
 	}
 }
