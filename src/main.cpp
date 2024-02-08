@@ -154,10 +154,10 @@ void autoPuncher() {
 }
 
 // if toggled on, automatically lower/ready cata
-void autoLower() {
+void autoReady() {
 	while (true) {
 		while (autoLower) {
-			if (!cataIsReadied()) {readyCata()} // if statement not required but maybe better?
+			if (!cataIsReadied()) {readyCata();} // if statement not required but maybe better?
 			delay(10);
 		}
 		delay(10);
@@ -548,7 +548,7 @@ void initialize() {
 	//Task brainScreen(screenDisplay1)
 	//Task controllerScreenTask(controllerScreen);
 	Task autoPuncherTask(autoPuncher);
-	Task autoLowerTask(autoLower);
+	Task autoReadyTask(autoReady);
 	Task ledUpdaterTask(ledUpdater);
 }
 
@@ -662,7 +662,7 @@ void opcontrol() {
 				autoFireOn = false;
 				cataMotorOn = false;
 			}
-			cataMotorOn = !cataMotorOn
+			cataMotorOn = !cataMotorOn;
 			if (cataMotorOn) {
 				CR.move(globalCataSpeed);
 			}
@@ -673,18 +673,18 @@ void opcontrol() {
 
 		// toggle autoPuncher with "B" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_B)) {
-			autoFireOn = !autoFireOn
+			autoFireOn = !autoFireOn;
 		}
 
 		// toggle autoLower with "Y" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
-			autoLower = !autoLower
+			autoLower = !autoLower;
 		}
 
 		// toggle blocker with "X" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
-			blockerUp = !blockerUp
+			blockerUp = !blockerUp;
 			blocker.set_value(blockerUp);
 		}
 
