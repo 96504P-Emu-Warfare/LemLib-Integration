@@ -105,7 +105,7 @@ lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensor
 
 void overheatWarning(Motor motor) {
     if (motor.get_port() > 0 && motor.get_temperature() >= 74) {
-		//print overheat statement in the form "OVERHEAT (motor, temp)"
+		// print overheat statement in the form "OVERHEAT (motor, temp)"
         Controller1.set_text(2, 4, "OVERHEAT (" + std::to_string(motor.get_port()) + ", " + std::to_string(motor.get_temperature()) + ")");
     }
 }
@@ -120,7 +120,7 @@ bool cataIsReadied() {
     return OPT2.get_proximity() > 40;
 }
 
-//spin cata until readied
+// spin cata until readied
 void readyCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while (!cataIsReadied()) {
@@ -129,7 +129,7 @@ void readyCata(int cataSpeed = 127) {
 	CR.move(0);
 }
 
-//spin cata until triball is off of robot
+// spin cata until triball is off of robot
 void fireCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
 	while(triballOnKicker()) {
@@ -138,7 +138,7 @@ void fireCata(int cataSpeed = 127) {
 	CR.move(0);
 }
 
-//if toggled on, automatically fire detected triballs in puncher and reset
+// if toggled on, automatically fire detected triballs in puncher and reset
 void autoPuncher() {
 	readyCata();
 	while (true) {
@@ -153,11 +153,11 @@ void autoPuncher() {
 	}
 }
 
-//if toggled on, automatically lower/ready cata
+// if toggled on, automatically lower/ready cata
 void autoLower() {
 	while (true) {
 		while (autoLower) {
-			if (!cataIsReadied()) {readyCata()} //if statement not required but maybe better?
+			if (!cataIsReadied()) {readyCata()} // if statement not required but maybe better?
 			delay(10);
 		}
 		delay(10);
@@ -272,7 +272,7 @@ void flow(std::string color1, std::string color2) {
  * 
  * 
  *   AUTONOMOUS AND DRIVER CONTROL
- * 	 (Use https://path.jerryio.com/ ) - width: , length: 
+ * 	 (Use https:// path.jerryio.com/ ) - width: , length: 
  * 
  * 
  * 
@@ -440,12 +440,12 @@ void sixBallMidrush() {
 void skills() {
 	// initial setup and setting cata to global speed
 	autoFireOn = true;
-	//CR.move(globalCataSpeed);
+	// CR.move(globalCataSpeed);
 	chassis.setPose(-49, -56, 225);
 
 	// turn toward goal and fire for 40 seconds
 	chassis.turnTo(46, -9, 1000, false, true);
-	//pros::delay(35000); // however long it takes to fire all triballs
+	// pros::delay(35000); // however long it takes to fire all triballs
 
 	// turn autofire on to stop cata from hitting bar
 	autoFireOn = false;
@@ -461,7 +461,7 @@ void skills() {
 	chassis.turnTo(61, -43, 1000, false, true);
 	chassis.moveTo(61, -43, 230, 1500, false, false);
 	chassis.turnTo(64, 0, 1000, false, true);
-	//chassis.moveTo(61, -32, 180, 2000, false, false, 0.6, 20);
+	// chassis.moveTo(61, -32, 180, 2000, false, false, 0.6, 20);
 	driveMove(-90);
 	delay(1500);
 	chassis.setPose(61, -32, 180);
@@ -479,7 +479,7 @@ void skills() {
 	chassis.turnTo(48, -10, 1000);
 	leftWing.set_value(true);
 	rightWing.set_value(true);
-	//chassis.moveTo(40, -5, 90, 1500, false, true, 20);
+	// chassis.moveTo(40, -5, 90, 1500, false, true, 20);
 	driveMove(100);
 	delay(1000);
 	chassis.setPose(40, -11, 90);
@@ -615,7 +615,7 @@ void opcontrol() {
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
 
-	//reset old varaibles
+	// reset old varaibles
 	autoFireOn = false;
 	blockerUp = false;
 	autoLower = true;
@@ -625,13 +625,13 @@ void opcontrol() {
 	bool leftWingOut = false;
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
-	//declare new variables to be used later for drivetrain code
+	// declare new variables to be used later for drivetrain code
 	float move;
 	float turn;
 	float left;
 	float right;
 
-	//set drive motors to coast
+	// set drive motors to coast
 	FL.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	FR.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	BL.set_brake_mode(E_MOTOR_BRAKE_COAST);
@@ -639,7 +639,7 @@ void opcontrol() {
 	TL.set_brake_mode(E_MOTOR_BRAKE_COAST);
 	TR.set_brake_mode(E_MOTOR_BRAKE_COAST);
 
-	//set cata and intake motors to brake
+	// set cata and intake motors to brake
 	CR.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 
@@ -651,10 +651,10 @@ void opcontrol() {
 
 	while (true) {
 		// ******************************************
-		// CONTROLLER 1							   //
+		// CONTROLLER 1							   // 
 		// ******************************************
 
-		//toggle cata on/off with "A" button
+		// toggle cata on/off with "A" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_A)){
 			if (autoFireOn) {
 				autoFireOn = false;
@@ -669,34 +669,34 @@ void opcontrol() {
 			}
 		}
 
-		//toggle autoPuncher with "B" button
+		// toggle autoPuncher with "B" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_B)) {
 			autoFireOn = !autoFireOn
 		}
 
-		//toggle autoLower with "Y" button
+		// toggle autoLower with "Y" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
 			autoLower = !autoLower
 		}
 
-		//toggle blocker with "X" button
+		// toggle blocker with "X" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
 			blockerUp = !blockerUp
 			blocker.set_value(blockerUp);
 		}
 
-		//for testing (not for match use); run selected autonomous with "DOWN" button
+		// for testing (not for match use); run selected autonomous with "DOWN" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN)) {
 			autonomous();
 		}
 
-		//decrease cata speed with "LEFT" button
+		// decrease cata speed with "LEFT" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_LEFT)) {
 			if (globalCataSpeed > 70) {globalCataSpeed -= 5;}
 		}
 
-		//increase cata speed with "LEFT" button
+		// increase cata speed with "LEFT" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
 			globalCataSpeed += 5;
 			if (globalCataSpeed < 125) {globalCataSpeed += 5;}
@@ -707,19 +707,19 @@ void opcontrol() {
 			chassis.turnTo(100, 0, 2000);
 		}
 
-		//toggle left wing with "L2" button
+		// toggle left wing with "L2" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
 			leftWingOut = !leftWingOut;
 			leftWing.set_value(leftWingOut);
 		}
 
-		//toggle right wing with "L1" button
+		// toggle right wing with "L1" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L1)){
 			rightWingOut = !rightWingOut;
 			rightWing.set_value(rightWingOut);
 		}
 
-		//intake if holding R1, outtake if holding R2
+		// intake if holding R1, outtake if holding R2
 		if (Controller1.get_digital(E_CONTROLLER_DIGITAL_R2)){
 			INT.move(-127);
 		}
@@ -735,7 +735,7 @@ void opcontrol() {
 		turn = Controller1.get_analog(ANALOG_RIGHT_X);
 		left = (move * moveSpeed + turn * turnSpeed);
 		right = (move * moveSpeed - turn * turnSpeed);
-		//move drivetrain motors
+		// move drivetrain motors
 		FL.move(left);
 		TL.move(left);
 		BL.move(left);
@@ -743,7 +743,7 @@ void opcontrol() {
 		TR.move(right);
 		BR.move(right);   
 
-		//overheating warnings for all motors
+		// overheating warnings for all motors
 		overheatWarning(FL);
         overheatWarning(TL);
         overheatWarning(BL);
