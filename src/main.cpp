@@ -26,7 +26,6 @@ Motor BR(12, E_MOTOR_GEARSET_06, 0);
 Motor TR(13, E_MOTOR_GEARSET_06, 1);
 
 Motor INT(17, E_MOTOR_GEARSET_06, 1);
-//Motor CL(18, E_MOTOR_GEARSET_18, 1);
 Motor CR(20, E_MOTOR_GEARSET_18, 0);
 
 MotorGroup leftMotors({BL, TL});
@@ -531,9 +530,7 @@ void skills2() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	//chassis.calibrate();
 	lcd::initialize();
-    //selector::init();
 	OPT1.set_led_pwm(30);
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
