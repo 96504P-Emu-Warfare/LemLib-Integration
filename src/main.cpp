@@ -116,9 +116,13 @@ bool triballOnKicker() {
     return OPT1.get_proximity() > 250;
 }
 
+bool cataIsReadied() {
+    return OPT2.get_proximity() > 40;
+}
+
 void readyCata(int cataSpeed = 127) {
 	CR.move(cataSpeed);
-	while (OPT2.get_proximity() < 40) {
+	while (!cataIsReadied) {
 		delay(10);
 	}
 	CR.move(0);
@@ -632,7 +636,7 @@ void opcontrol() {
 		// ******************************************
 
 		if (autoLower && !cataMotorOn && !autoFireOn) {
-			if (OPT2.get_proximity() < 40) {
+			if (!cataIsReadied) {
 				CR.move(127);
 			}
 			else {
