@@ -1,4 +1,11 @@
 #include "main.h"
+#include "pros/adi.hpp"
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <vector>
+#include <list>
+
 
 using namespace pros;
 
@@ -29,7 +36,7 @@ MotorGroup rightMotors({BR, TR});
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
 ADIDigitalOut blocker('C');
-ADILED autoPuncherIndicator('H',1);
+ADILed driveLeds(1, 27);
 
 bool blockerUp = false;
 int globalCataSpeed = 90;
@@ -42,7 +49,6 @@ Controller Controller2(CONTROLLER_PARTNER);
 
 Optical OPT1(4);
 Optical OPT2(9);
-//ADIEncoder ENC('C', 'D', false);
 
 Imu Inr(8);
 
@@ -84,7 +90,7 @@ lemlib::ChassisController_t angularController {
 lemlib::OdomSensors_t sensors {
 	nullptr, // vertical tracking wheel 1
 	nullptr, // vertical tracking wheel 2
-	nullptr, // horizontall tracking wheel 1 (add later)
+	nullptr, // horizontal tracking wheel 1 (add later)
     nullptr, // horizontal tracking wheel 2
     &Inr // inertial sensor
 };
@@ -158,8 +164,6 @@ void autoPuncher() {
 			delay(10);
 		}
 
-	autoPuncherIndicator.clear_all();
-
 	delay(20);
 
 	}
@@ -197,6 +201,75 @@ void driveMove(int power) {
 	TR.move(power);
 	FL.move(power);
 	FR.move(power);
+}
+
+// RGB CONTROL
+
+void ledUpdater() {
+	while(true){
+		driveLeds.update();
+		delay(100);
+	}
+}
+
+uint32_t hexToDec(const std::string& hex) {
+    std::stringstream ss;
+    ss << std::hex << hex;
+    uint32_t dec;
+    ss >> dec;
+    return dec;
+}
+
+std::string decToHex(uint32_t dec) {
+    std::stringstream ss;
+    ss << std::hex << std::setw(8) << std::setfill('0') << dec;
+    return ss.str();
+}
+
+// this doesnt work 
+std::vector<uint32_t> genGradient(std::string color1, std::string color2, int x) {
+    uint32_t r1 = hexToDec(color1.substr(0, 2));
+    uint32_t g1 = hexToDec(color1.substr(2, 2));
+    uint32_t b1 = hexToDec(color1.substr(4, 2));
+
+    uint32_t r2 = hexToDec(color2.substr(0, 2));
+    uint32_t g2 = hexToDec(color2.substr(2, 2));
+    uint32_t b2 = hexToDec(color2.substr(4, 2));
+
+    std::vector<uint32_t> inBetweenColors;
+
+    for (int i = 1; i <= x; ++i) {
+        uint32_t r = r1 + (r2 - r1) * i / x;
+        uint32_t g = g1 + (g2 - g1) * i / x;
+        uint32_t b = b1 + (b2 - b1) * i / x;
+
+        uint32_t hexColor = (r << 16) | (g << 8) | b;
+        inBetweenColors.push_back(hexColor);
+    }
+
+    return inBetweenColors;
+}
+
+// tbh its probably just easier to make custom set pixel and set all functions to accomodate multiple string
+// add public variables for turning on and off flow, and dif colors to flow
+
+void flow(std::string color1, std::string color2) {
+
+	// this doesnt work
+	std::vector<uint32_t> colors = genGradient(color1, color2, driveLeds.length());
+	
+	while (true) {
+
+		// loop through each pixel gets a color, update buffer, shift color matrix by 1, repeat
+		for (int i = 0; i < driveLeds.length(); ++i) {
+			driveLeds[i] = colors[i];
+		}
+		
+		// shift color vector
+		std::rotate(colors.begin(), colors.begin()+1, colors.end());
+		
+		delay(100);
+	}
 }
 
 /*****************************************
@@ -473,13 +546,14 @@ void skills2() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	chassis.calibrate();
+	//chassis.calibrate();
 	lcd::initialize();
-    selector::init();
+    //selector::init();
 	OPT1.set_led_pwm(30);
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
 	Task autoPuncherTask(autoPuncher);
+	Task ledUpdaterTask(ledUpdater);
 }
 
 /**
@@ -543,8 +617,8 @@ void autonomous() {
  */
 void opcontrol() {
 
-	Task brainScreen(screenDisplay1);
-	Task controllerScreenTask(controllerScreen);
+	//Task brainScreen(screenDisplay1);
+	//Task controllerScreenTask(controllerScreen);
 
 	if (competitionMode) {
 		LV_IMG_DECLARE(BrainScreenIdle);
@@ -575,6 +649,8 @@ void opcontrol() {
 
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
+	flow("0xFF0000", "FF0000");
 
 	/**
 	 * BUTTON INPUT SYSTEM
