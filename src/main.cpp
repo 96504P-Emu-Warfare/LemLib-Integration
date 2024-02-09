@@ -1,5 +1,6 @@
 #include "main.h"
 #include "pros/adi.hpp"
+#include "pros/misc.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -43,6 +44,7 @@ int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
 bool autoLower;
 bool competitionMode = false;
+bool driveControlStarted = false;
 bool autoFireOn;
 
 Controller Controller1(CONTROLLER_MASTER);
@@ -57,6 +59,7 @@ int triballsFired = 0;
 
 bool flowOn = false;
 bool flashOn = false;
+bool sparkOn = false;
 std::vector<uint32_t> colors;
 u_int32_t tempColor;
 int speed;
@@ -278,43 +281,79 @@ void set_all(u_int32_t color) {
 void flow(uint32_t color1, u_int32_t color2) {
 	flowOn = true;
 	flashOn = false;
+	sparkOn = false;
 	colors = genGradient(color1, color2, driveLeds.length());
 }
 
 void flash(uint32_t color, int flashSpeed){
 	flashOn = true;
 	flowOn = false;
+	sparkOn = false;
 	tempColor = color;
 	speed = flashSpeed;
 }
 
+void spark(uint32_t color, int sparkSpeed) {
+	sparkOn = true;
+	flowOn = false;
+	flashOn = false;
+	tempColor = color;
+	speed = sparkSpeed;
+}
+
 void LEDtask() {
 	while (true) {
-		while (flowOn) {
+
+		if (autoFireOn && driveControlStarted)  {
+			flowOn = false;
+			flashOn = false;
+			sparkOn = false;
+			flash(0x00FF00, 8);
+		}
+
+		if (flowOn) {
 
 			// loop through each pixel gets a color, update buffer, shift color matrix by 1, repeat
 			for (int i = 0; i < driveLeds.length(); ++i) {
 				set_pixel(colors[i], i);
 			}
+
+			set_pixel(colors[1], 0);
+			set_pixel(colors[20], 1);
 			
 			// shift color vector
 			std::rotate(colors.begin(), colors.begin()+1, colors.end());
-			
-			delay(100);
 		}
 
-		while (flashOn) {
+		if (flashOn) {
 			set_all(tempColor);
 			delay(speed*100);
 			set_all(0x000000);
 			delay(speed*100);
 		}
+
+		if (sparkOn) {
+			sparkOn = false;
+			for (int i = 0; i < driveLeds.length(); ++i) {
+				set_pixel(tempColor, i);
+				set_pixel(tempColor, i);
+			}
+		}
+
+		delay(40);
 	}
 }
 
 void turnOffLeds() {
 	flowOn = false;
 	flashOn = false;
+}
+
+void competitionTimerStuff() {
+	delay(75000); // 30 seconds left
+	flash(0xE9D502, 5);
+	delay(15000); // 15 seconds left
+	flash(0xD22730, 3);
 }
 
 /*****************************************
@@ -588,7 +627,7 @@ void skills2() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	chassis.calibrate();
+	//chassis.calibrate();
 	lcd::initialize();
     selector::init();
 	OPT1.set_led_pwm(30);
@@ -604,7 +643,9 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+void disabled() {
+	flow(0xFFFFFF, 0xFF00FF);
+}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -660,6 +701,8 @@ void autonomous() {
  */
 void opcontrol() {
 
+	driveControlStarted = true;
+
 	//Task brainScreen(screenDisplay1);
 	Task controllerScreenTask(controllerScreen);
 
@@ -669,6 +712,8 @@ void opcontrol() {
 		lv_img_set_src(img, &BrainScreenIdle);
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
+
+	Task competitionTimerTask(competitionTimerStuff);
 
 	autoFireOn = false;
 	blockerUp = false;
@@ -691,7 +736,7 @@ void opcontrol() {
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
-	flow(0xFF0000, 0xFF0000);
+	flow(0xFFFFFF, 0xFF00FF);
 
 	/**
 	 * BUTTON INPUT SYSTEM
