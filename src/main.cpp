@@ -36,13 +36,14 @@ MotorGroup rightMotors({BR, TR});
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
 ADIDigitalOut blocker('C');
-ADILed driveLeds(1, 27);
+ADILed driveLeds(4, 27);
 
 bool blockerUp = false;
 int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
 bool autoLower;
 bool competitionMode = false;
+bool autoFireOn;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
@@ -54,6 +55,11 @@ Imu Inr(8);
 
 int triballsFired = 0;
 
+bool flowOn = false;
+bool flashOn = false;
+std::vector<uint32_t> colors;
+u_int32_t tempColor;
+int speed;
 
 lemlib::Drivetrain_t drivetrain {
 	&leftMotors,
@@ -66,7 +72,7 @@ lemlib::Drivetrain_t drivetrain {
 
 // forward/backward PID
 lemlib::ChassisController_t lateralController {
-    47, // kP
+    65, // kP
     70, // kD
     1, // smallErrorRange
     100, // smallErrorTimeout
@@ -113,8 +119,6 @@ void overheatWarning(Motor motor) {
         Controller1.set_text(2, 4, "OVERHEAT (" + std::to_string(motor.get_port()) + ", " + std::to_string(motor.get_temperature()) + ")");
     }
 }
-
-bool autoFireOn;
 
 bool triballOnKicker() {
 	//if detect triball green color on kicker
@@ -226,50 +230,91 @@ std::string decToHex(uint32_t dec) {
     return ss.str();
 }
 
-// this doesnt work 
-std::vector<uint32_t> genGradient(std::string color1, std::string color2, int x) {
-    uint32_t r1 = hexToDec(color1.substr(0, 2));
-    uint32_t g1 = hexToDec(color1.substr(2, 2));
-    uint32_t b1 = hexToDec(color1.substr(4, 2));
+std::vector<uint32_t> genGradient(uint32_t startColor, uint32_t endColor, size_t length) {
+    std::vector<uint32_t> gradient;
+    gradient.reserve(length);
 
-    uint32_t r2 = hexToDec(color2.substr(0, 2));
-    uint32_t g2 = hexToDec(color2.substr(2, 2));
-    uint32_t b2 = hexToDec(color2.substr(4, 2));
+    // Extract RGB components of startColor
+    uint8_t startR = (startColor >> 16) & 0xFF;
+    uint8_t startG = (startColor >> 8) & 0xFF;
+    uint8_t startB = startColor & 0xFF;
 
-    std::vector<uint32_t> inBetweenColors;
+    // Extract RGB components of endColor
+    uint8_t endR = (endColor >> 16) & 0xFF;
+    uint8_t endG = (endColor >> 8) & 0xFF;
+    uint8_t endB = endColor & 0xFF;
 
-    for (int i = 1; i <= x; ++i) {
-        uint32_t r = r1 + (r2 - r1) * i / x;
-        uint32_t g = g1 + (g2 - g1) * i / x;
-        uint32_t b = b1 + (b2 - b1) * i / x;
+    // Calculate the step size for each color component
+    double stepR = static_cast<double>(endR - startR) / (length - 1);
+    double stepG = static_cast<double>(endG - startG) / (length - 1);
+    double stepB = static_cast<double>(endB - startB) / (length - 1);
 
-        uint32_t hexColor = (r << 16) | (g << 8) | b;
-        inBetweenColors.push_back(hexColor);
+    // Generate the gradient
+    for (size_t i = 0; i < length; ++i) {
+        uint8_t r = static_cast<uint8_t>(startR + (stepR * i));
+        uint8_t g = static_cast<uint8_t>(startG + (stepG * i));
+        uint8_t b = static_cast<uint8_t>(startB + (stepB * i));
+
+        // Combine the RGB components into a single uint32_t color
+        uint32_t color = (r << 16) | (g << 8) | b;
+        gradient.push_back(color);
     }
 
-    return inBetweenColors;
+    return gradient;
+}
+
+// update if more led strands are added
+void set_pixel(u_int32_t color, int i) {
+	driveLeds[i] = color;
+}
+
+void set_all(u_int32_t color) {
+	driveLeds.set_all(color);
 }
 
 // tbh its probably just easier to make custom set pixel and set all functions to accomodate multiple string
 // add public variables for turning on and off flow, and dif colors to flow
 
-void flow(std::string color1, std::string color2) {
+void flow(uint32_t color1, u_int32_t color2) {
+	flowOn = true;
+	flashOn = false;
+	colors = genGradient(color1, color2, driveLeds.length());
+}
 
-	// this doesnt work
-	std::vector<uint32_t> colors = genGradient(color1, color2, driveLeds.length());
-	
+void flash(uint32_t color, int flashSpeed){
+	flashOn = true;
+	flowOn = false;
+	tempColor = color;
+	speed = flashSpeed;
+}
+
+void LEDtask() {
 	while (true) {
+		while (flowOn) {
 
-		// loop through each pixel gets a color, update buffer, shift color matrix by 1, repeat
-		for (int i = 0; i < driveLeds.length(); ++i) {
-			driveLeds[i] = colors[i];
+			// loop through each pixel gets a color, update buffer, shift color matrix by 1, repeat
+			for (int i = 0; i < driveLeds.length(); ++i) {
+				set_pixel(colors[i], i);
+			}
+			
+			// shift color vector
+			std::rotate(colors.begin(), colors.begin()+1, colors.end());
+			
+			delay(100);
 		}
-		
-		// shift color vector
-		std::rotate(colors.begin(), colors.begin()+1, colors.end());
-		
-		delay(100);
+
+		while (flashOn) {
+			set_all(tempColor);
+			delay(speed*100);
+			set_all(0x000000);
+			delay(speed*100);
+		}
 	}
+}
+
+void turnOffLeds() {
+	flowOn = false;
+	flashOn = false;
 }
 
 /*****************************************
@@ -340,34 +385,34 @@ void nearsideSafe() {
 }
 
 void nearsideRush() {
-	chassis.setPose(-45, -55, 45);
+	chassis.setPose(-45, -55, 48);
 
 	// hit alliance triball toward goal with left wing
 	rightWing.set_value(1);
 
 	// grab central far triball
 	INT.move(127);
-	chassis.moveTo(-11, -8, 30, 300, false, true, 35);
+	chassis.moveTo(-9, -9.5, 31, 300, false, true, 35);
 	autoFireOn = true;
 	rightWing.set_value(0);
-	chassis.moveTo(-11, -8, 30, 2500, false, true, 35);
+	chassis.moveTo(-9, -9.5, 31, 2500, false, true, 35);
 	delay(300);
-	INT.move(60);
 
 	// back up wtih triball and move to match load bar
 	driveMove(-70);
 	delay(900);
 	driveMove(0);
-	chassis.moveTo(-50, -46, 45, 3000, false, false);
+	chassis.moveTo(-50, -43, 30, 3000, false, false);
 
 	// send match load and central triball down alley
 	chassis.turnTo(-22, -81, 1000);
 	rightWing.set_value(1);
 	INT.move(-127);
 	delay(300);
-	chassis.turnTo(-20, -56, 1000);
+	chassis.turnTo(40, -30, 1000);
 	rightWing.set_value(0);
-	chassis.moveTo(-10, -58, 90, 2000);
+	chassis.turnTo(-20, -56, 1000);
+	chassis.moveTo(-12, -52, 90, 2500);
 	driveMove(0);
 	leftWing.set_value(1);
 	delay(300);
@@ -380,7 +425,7 @@ void fiveBallMidrush() {
 
 void sixBallMidrush() {
 	// release intake and set pose
-	chassis.setPose(47, -53, 320);
+	chassis.setPose(47, -53, 317);
 
 	// hit alliance triball toward goal with right win
 	rightWing.set_value(1);
@@ -411,21 +456,21 @@ void sixBallMidrush() {
 	chassis.turnTo(14, -17, 1000);
 	INT.move(127);
 	chassis.moveTo(14, -17, 235, 1500);
-	chassis.turnTo(59, -45, 700);
+	chassis.turnTo(59, -44, 700);
 	INT.move(0);
-	chassis.moveTo(59, -45, 125, 2500, false, true, 35);
+	chassis.moveTo(59, -44, 125, 2500, false, true, 35);
 
 	// go back and knock out matchload
 	rightWing.set_value(1);
+	INT.move(-127);
 	chassis.turnTo(45, -24, 1000);
 	rightWing.set_value(0);
 	chassis.turnTo(6, -55, 1000);
-	INT.move(-127);
 	delay(300);
 
 	// grab 6 ball
 	INT.move(127);
-	chassis.moveTo(10, -54, 270, 2500, false, true, 25);
+	chassis.moveTo(12, -54, 270, 2500, false, true, 25);
 
 	// move back
 	chassis.moveTo(40, -54, 270, 2500, false, false, 25);
@@ -443,14 +488,15 @@ void sixBallMidrush() {
 }
 
 void skills() {
-	// initial setup and setting cata to global speed
-	autoFireOn = true;
-	//CR.move(globalCataSpeed);
+	// initial setup
 	chassis.setPose(-49, -56, 225);
 
-	// turn toward goal and fire for 40 seconds
+	// turn toward goal and fire for x seconds, lower cata 
 	chassis.turnTo(46, -9, 1000, false, true);
-	//pros::delay(35000); // however long it takes to fire all triballs
+	CR.move(110);
+	delay(500);
+	autoFireOn = true;
+	//pros::delay(31000); // however long it takes to fire all triballs
 
 	// turn autofire on to stop cata from hitting bar
 	autoFireOn = false;
@@ -466,9 +512,12 @@ void skills() {
 	chassis.turnTo(61, -43, 1000, false, true);
 	chassis.moveTo(61, -43, 230, 1500, false, false);
 	chassis.turnTo(64, 0, 1000, false, true);
-	//chassis.moveTo(61, -32, 180, 2000, false, false, 0.6, 20);
 	driveMove(-90);
 	delay(1500);
+	chassis.setPose(61, -32, 180);
+	driveMove(50);
+	delay(1000);
+	driveMove(-90);
 	chassis.setPose(61, -32, 180);
 	driveMove(20);
 	delay(750);
@@ -510,13 +559,6 @@ void skills() {
 	driveMove(-60);
 	delay(700);
 	driveMove(0);
-	chassis.turnTo(55, 50, 1000);
-	chassis.moveTo(55, 50, 60, 3500, false, true, 30, .2);
-	chassis.turnTo(58, 30, 800, false, true);
-	chassis.moveTo(58, 30, 0, 1000, false, false, 30, .2);
-	driveMove(50);
-	delay(400);
-	driveMove(0);
 
 }
 
@@ -546,14 +588,15 @@ void skills2() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	//chassis.calibrate();
+	chassis.calibrate();
 	lcd::initialize();
-    //selector::init();
+    selector::init();
 	OPT1.set_led_pwm(30);
 	OPT2.set_led_pwm(30);
 	autoFireOn = true;
 	Task autoPuncherTask(autoPuncher);
 	Task ledUpdaterTask(ledUpdater);
+	Task leds(LEDtask);
 }
 
 /**
@@ -618,7 +661,7 @@ void autonomous() {
 void opcontrol() {
 
 	//Task brainScreen(screenDisplay1);
-	//Task controllerScreenTask(controllerScreen);
+	Task controllerScreenTask(controllerScreen);
 
 	if (competitionMode) {
 		LV_IMG_DECLARE(BrainScreenIdle);
@@ -638,8 +681,6 @@ void opcontrol() {
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
 
-	//chassis.motorsStop();
-
 	FL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 	FR.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
 	BL.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
@@ -650,7 +691,7 @@ void opcontrol() {
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
-	flow("0xFF0000", "FF0000");
+	flow(0xFF0000, 0xFF0000);
 
 	/**
 	 * BUTTON INPUT SYSTEM
