@@ -37,7 +37,7 @@ MotorGroup rightMotors({BR, TR});
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
 ADIDigitalOut blocker('C');
-ADILed driveLeds(4, 27);
+ADILed driveLeds(8, 27);
 
 bool blockerUp = false;
 int globalCataSpeed = 90;
@@ -45,6 +45,8 @@ int cataDelay = 10; // in ms
 bool autoLower;
 bool competitionMode = false;
 bool driveControlStarted = false;
+bool disabledMode = false;
+bool endGame = false;
 bool autoFireOn;
 
 Controller Controller1(CONTROLLER_MASTER);
@@ -63,6 +65,7 @@ bool sparkOn = false;
 std::vector<uint32_t> colors;
 u_int32_t tempColor;
 int speed;
+bool LEDbuttonToggle = false;
 
 lemlib::Drivetrain_t drivetrain {
 	&leftMotors,
@@ -275,6 +278,12 @@ void set_all(u_int32_t color) {
 	driveLeds.set_all(color);
 }
 
+void LEDclear() {
+	flowOn = false;
+	flashOn = false;
+	sparkOn = false;
+}
+
 // tbh its probably just easier to make custom set pixel and set all functions to accomodate multiple string
 // add public variables for turning on and off flow, and dif colors to flow
 
@@ -303,13 +312,6 @@ void spark(uint32_t color, int sparkSpeed) {
 
 void LEDtask() {
 	while (true) {
-
-		if (autoFireOn && driveControlStarted)  {
-			flowOn = false;
-			flashOn = false;
-			sparkOn = false;
-			flash(0x00FF00, 8);
-		}
 
 		if (flowOn) {
 
@@ -344,16 +346,38 @@ void LEDtask() {
 	}
 }
 
-void turnOffLeds() {
-	flowOn = false;
-	flashOn = false;
+void RGBcontrol() {
+	while(true && !endGame) {
+		if (autoFireOn)
+			flash(0x39FF14, 8);
+			while (autoFireOn && !endGame) {
+			delay(50);
+			}
+			flashOn = false;
+
+		if (LEDbuttonToggle && !endGame) {
+			flash(0xFF800D, 1);
+			while (LEDbuttonToggle) {
+			delay(50);
+			}
+			flashOn = false;
+		}
+
+		else if (!flowOn && !flashOn && !sparkOn && !endGame) {
+			flow(0xFFFFFF, 0xFF00FF);
+		}
+	}
+
+	if (endGame) {
+		flash(0xE9D502, 5);
+		delay(15000); // 15 seconds left
+		flash(0xD22730, 3);
+	}
 }
 
 void competitionTimerStuff() {
 	delay(75000); // 30 seconds left
-	flash(0xE9D502, 5);
-	delay(15000); // 15 seconds left
-	flash(0xD22730, 3);
+	endGame = true;
 }
 
 /*****************************************
@@ -627,7 +651,7 @@ void skills2() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	//chassis.calibrate();
+	chassis.calibrate();
 	lcd::initialize();
     selector::init();
 	OPT1.set_led_pwm(30);
@@ -636,6 +660,7 @@ void initialize() {
 	Task autoPuncherTask(autoPuncher);
 	Task ledUpdaterTask(ledUpdater);
 	Task leds(LEDtask);
+	Task rgbcontrolTask(RGBcontrol);
 }
 
 /**
@@ -644,7 +669,8 @@ void initialize() {
  * the robot is enabled, this task will exit.
  */
 void disabled() {
-	flow(0xFFFFFF, 0xFF00FF);
+	disabledMode = true;
+	driveControlStarted = false;
 }
 
 /**
@@ -702,6 +728,7 @@ void autonomous() {
 void opcontrol() {
 
 	driveControlStarted = true;
+	disabledMode = false;
 
 	//Task brainScreen(screenDisplay1);
 	Task controllerScreenTask(controllerScreen);
@@ -735,8 +762,6 @@ void opcontrol() {
 
 	CR.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-	flow(0xFFFFFF, 0xFF00FF);
 
 	/**
 	 * BUTTON INPUT SYSTEM
@@ -806,7 +831,7 @@ void opcontrol() {
 			}
 		}
 
-		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN)) {
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN) && competitionMode) {
 			autonomous();
 		}
 
@@ -821,8 +846,7 @@ void opcontrol() {
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_UP)) {
-			chassis.setPose(0,0,0);
-			chassis.turnTo(100, 0, 2000);
+			LEDbuttonToggle = !LEDbuttonToggle;
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_L2)){
