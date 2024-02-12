@@ -539,13 +539,11 @@ void sixBallMidrush() {
 	chassis.moveTo(40, -54, 270, 2500, false, false, 25);
 	chassis.turnTo(61, -28, 1000);
 	INT.move(-127);
-	delay(300);
+	chassis.moveTo(61, -30, 0, 900, false, true, 55, .2);
 	INT.move(0);
-	chassis.turnTo(61, -28, 1000, false, true);
-	chassis.moveTo(61, -30, 180, 900, false, false, 55, .2);
-	driveMove(-110);
+	driveMove(110);
 	delay(600);
-	driveMove(50);
+	driveMove(-50);
 	delay(400);
 	driveMove(0);
 }
@@ -559,7 +557,7 @@ void skills() {
 	CR.move(110);
 	delay(500);
 	autoFireOn = true;
-	//pros::delay(31000); // however long it takes to fire all triballs
+	pros::delay(31000); // however long it takes to fire all triballs
 
 	// turn autofire on to stop cata from hitting bar
 	autoFireOn = false;
@@ -831,7 +829,7 @@ void opcontrol() {
 			}
 		}
 
-		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN) && competitionMode) {
+		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_DOWN) && !competitionMode) {
 			autonomous();
 		}
 
