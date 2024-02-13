@@ -768,9 +768,7 @@ void opcontrol() {
 	CR.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 	INT.set_brake_mode(E_MOTOR_BRAKE_BRAKE);
 
-	flow("0xFF0000", "FF0000");
-
-	 * BUTTON INPUT SYSTEM
+	/* BUTTON INPUT SYSTEM
 	*/
 
 	while (true) {
