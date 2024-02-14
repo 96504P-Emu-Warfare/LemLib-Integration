@@ -166,7 +166,7 @@ void screenDisplay1() {
         lcd::print(0, "x: %f", pose.x); 
         lcd::print(1, "y: %f", pose.y); 
         lcd::print(2, "heading: %f", pose.theta); 
-        delay(10);
+        delay(100);
     }
 }
 
@@ -174,7 +174,7 @@ void screenDisplay2() {
     while (true) {
         lcd::print(0, "hue: %f", OPT2.get_hue()); 
 		lcd::print(1, "distance: %d", OPT2.get_proximity()); 
-		delay(10);
+		delay(100);
     }
 }
 
