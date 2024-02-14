@@ -129,20 +129,17 @@ bool triballOnKicker() {
     return OPT1.get_proximity() > 250;
 }
 
-bool cataInReadyPosition() {
-	if (OPT2.get_proximity() > 40) {return true;}
-	return false;
+bool cataInReadyPos() {
+	return OPT2.get_proximity() > 40;
 }
 
 // if toggled on, automatically fire detected triballs in puncher and reset
 void autoPuncher() {
 	while (true) {
 		while (autoFireOn) {
-			if (triballOnKicker() || !cataInReadyPosition()) {
+			if (triballOnKicker() || !cataInReadyPos()) {
 				CR.move(127);
-				while (triballOnKicker() || !cataInReadyPosition()) {
-					delay(10);
-				}
+				while (triballOnKicker() || !cataInReadyPos()) {delay(10);}
 				CR.move(0);
 			}
 			delay(10);
@@ -155,7 +152,7 @@ void autoPuncher() {
 void autoReady() {
 	while (true) {
 		while (autoLower && !autoFireOn) {
-			if (!cataInReadyPosition()) {CR.move(100);} // if statement not required but maybe better?
+			if (!cataInReadyPos()) {CR.move(127);} // if statement not required but maybe better?
 			else {CR.move(0);}
 			delay(10);
 		}
