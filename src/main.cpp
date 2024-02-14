@@ -320,7 +320,7 @@ void LEDmainLoop() {
 			}
 		}
 
-		delay(40);
+		delay(50);
 	}
 }
 
@@ -330,9 +330,7 @@ void RGBcontrol() {
 		if (autoFireOn) {
 			resting = false;
 			flash(0x39FF14, 8);
-			while (autoFireOn && !endGame) {
-				delay(50);
-			}
+			while (autoFireOn && !endGame) {delay(50);}
 			flashOn = false;
 			resting = true;
 		}
@@ -340,9 +338,7 @@ void RGBcontrol() {
 		if (LEDbuttonToggle && !endGame) {
 			flash(0xFF800D, 1);
 			resting = false;
-			while (LEDbuttonToggle) {
-			delay(50);
-			}
+			while (LEDbuttonToggle) {delay(50);}
 			flashOn = false;
 			resting = true;
 		}
