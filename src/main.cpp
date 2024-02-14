@@ -138,15 +138,14 @@ bool cataInReadyPosition() {
 void autoPuncher() {
 	while (true) {
 		while (autoFireOn) {
-			
 			if (triballOnKicker() || !cataInReadyPosition()) {
 				CR.move(127);
 				while (triballOnKicker() || !cataInReadyPosition()) {
 					delay(10);
 				}
+				CR.move(0);
 			}
-
-			CR.move(0);
+			delay(10);
 		}
 		delay(10);
 	}
@@ -156,7 +155,6 @@ void autoPuncher() {
 void autoReady() {
 	while (true) {
 		while (autoLower && !autoFireOn) {
-			
 			if (!cataInReadyPosition()) {CR.move(100);} // if statement not required but maybe better?
 			else {CR.move(0);}
 			delay(10);
