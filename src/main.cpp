@@ -119,7 +119,7 @@ lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensor
 ******************************************/
 
 void overheatWarning(Motor motor) {
-    if (motor.get_port() > 0 && motor.get_temperature() >= 74) {
+    if (motor.get_temperature() >= 74) {
 		// print overheat statement in the form "OVERHEAT (motor, temp)"
         Controller1.set_text(2, 4, "OVERHEAT (" + std::to_string(motor.get_port()) + ", " + std::to_string(motor.get_temperature()) + ")");
     }
