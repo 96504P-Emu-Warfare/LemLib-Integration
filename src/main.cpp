@@ -129,33 +129,13 @@ void overheatWarning(Motor motor) {
 bool triballOnKicker() {
 	//if detect triball green color on kicker
     double hue1 = OPT1.get_hue();
-    if (OPT1.get_proximity() > 250) { //hue1 > 80 && hue1 < 95 && 
-        return true;
-    }
+    if (OPT1.get_proximity() > 245) {return true;}
     return false;
 }
 
-void readyCata() {
-
-	CR.move(127);
-
-	while (OPT2.get_proximity() < 40) {
-		delay(5);
-	}
-	CR.move(0);
-}
-
-void fireCata(int cataSpeed = 127) {
-
-	CR.move(cataSpeed);
-
-	while(triballOnKicker()) {
-
-		delay(5);
-	}
-
-	CR.move(0);
-
+bool cataInReadyPosition() {
+	if (OPT2.get_proximity() > 40) {return true;}
+	return false;
 }
 
 void autoPuncher() {
@@ -163,15 +143,15 @@ void autoPuncher() {
 	while (true) {
 
 		while (autoFireOn) {
-				
-			readyCata();
-
-			if (triballOnKicker()) {
-				fireCata();
-				triballsFired++;
+			
+			if (triballOnKicker() || !cataInReadyPosition()) {
+				CR.move(127);
+				while (triballOnKicker() || !cataInReadyPosition()) {
+					delay(10);
+				}
 			}
 
-			delay(10);
+			CR.move(0);
 		}
 
 	delay(20);
@@ -310,7 +290,7 @@ void spark(uint32_t color, int sparkSpeed) {
 	speed = sparkSpeed;
 }
 
-void LEDtask() {
+void LEDmainLoop() {
 	while (true) {
 
 		if (flowOn) {
@@ -346,25 +326,33 @@ void LEDtask() {
 	}
 }
 
+bool resting = false;
 void RGBcontrol() {
 	while(true && !endGame) {
 		if (autoFireOn)
+			resting = false;
 			flash(0x39FF14, 8);
 			while (autoFireOn && !endGame) {
 			delay(50);
 			}
 			flashOn = false;
+			resting = true;
 
 		if (LEDbuttonToggle && !endGame) {
 			flash(0xFF800D, 1);
+			resting = false;
 			while (LEDbuttonToggle) {
 			delay(50);
 			}
 			flashOn = false;
+			resting = true;
 		}
 
-		else if (!flowOn && !flashOn && !sparkOn && !endGame) {
+		else if (resting) {
 			flow(0xFFFFFF, 0xFF00FF);
+			delay(50);
+			flowOn = false;
+			resting = false;
 		}
 	}
 
@@ -372,7 +360,10 @@ void RGBcontrol() {
 		flash(0xE9D502, 5);
 		delay(15000); // 15 seconds left
 		flash(0xD22730, 3);
+		endGame = false;
 	}
+	
+	delay(10);
 }
 
 void competitionTimerStuff() {
@@ -557,7 +548,7 @@ void skills() {
 	CR.move(110);
 	delay(500);
 	autoFireOn = true;
-	pros::delay(31000); // however long it takes to fire all triballs
+	pros::delay(32000); // however long it takes to fire all triballs
 
 	// turn autofire on to stop cata from hitting bar
 	autoFireOn = false;
@@ -565,9 +556,9 @@ void skills() {
 	// turn and move backwards to other side
 	// pushing triballs along with robot
 	INT.move(-127);
-	chassis.turnTo(-19, -61, 1000, false, true);
-	chassis.moveTo(-19, -61, 285, 1000, false, false);
-	chassis.moveTo(39, -56, 270, 2000, false, false);
+	chassis.turnTo(-19, -64, 1000, false, true);
+	chassis.moveTo(-19, -64, 285, 1000, false, false);
+	chassis.moveTo(39, -62, 270, 2000, false, false);
 
 	// backwards push corner triballs into goal
 	chassis.turnTo(61, -43, 1000, false, true);
@@ -576,18 +567,14 @@ void skills() {
 	driveMove(-90);
 	delay(1500);
 	chassis.setPose(61, -32, 180);
-	driveMove(50);
-	delay(1000);
-	driveMove(-90);
-	chassis.setPose(61, -32, 180);
 	driveMove(20);
 	delay(750);
 	driveMove(0);
 
 	// move out of the corner and towards the middle,
 	// deploying wings on way to collect triballs
-	chassis.turnTo(11, -36, 1000);
-	chassis.moveTo(11, -36, -75, 1500);
+	chassis.turnTo(11, -34, 1000);
+	chassis.moveTo(11, -34, -75, 1500);
 	chassis.moveTo(11, -21, 0, 1500);
 
 	// first front push 
@@ -657,7 +644,7 @@ void initialize() {
 	autoFireOn = true;
 	Task autoPuncherTask(autoPuncher);
 	Task ledUpdaterTask(ledUpdater);
-	Task leds(LEDtask);
+	Task leds(LEDmainLoop);
 	Task rgbcontrolTask(RGBcontrol);
 }
 
@@ -883,6 +870,10 @@ void opcontrol() {
 		double drive = Controller1.get_analog(ANALOG_LEFT_Y);
 
 		double turn = Controller1.get_analog(ANALOG_RIGHT_X);
+
+		if (drive < 50) {
+			turn *= 1.3;
+		}
 
 		double left = (((drive * driveSpeed + turn * turnSpeed)));
 
