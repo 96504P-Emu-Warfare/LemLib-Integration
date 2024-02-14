@@ -136,7 +136,6 @@ bool cataInReadyPosition() {
 
 // if toggled on, automatically fire detected triballs in puncher and reset
 void autoPuncher() {
-	readyCata();
 	while (true) {
 		while (autoFireOn) {
 			
@@ -156,8 +155,10 @@ void autoPuncher() {
 // if toggled on, automatically lower/ready cata
 void autoReady() {
 	while (true) {
-		while (autoLower) {
-			if (!cataIsReadied()) {readyCata();} // if statement not required but maybe better?
+		while (autoLower && !autoFireOn) {
+			
+			if (!cataInReadyPosition()) {CR.move(100);} // if statement not required but maybe better?
+			else {CR.move(0);}
 			delay(10);
 		}
 		delay(10);
@@ -269,9 +270,6 @@ void LEDclear() {
 	sparkOn = false;
 }
 
-// tbh its probably just easier to make custom set pixel and set all functions to accomodate multiple string
-// add public variables for turning on and off flow, and dif colors to flow
-
 void flow(uint32_t color1, u_int32_t color2) {
 	flowOn = true;
 	flashOn = false;
@@ -334,14 +332,15 @@ void LEDmainLoop() {
 bool resting = false;
 void RGBcontrol() {
 	while(true && !endGame) {
-		if (autoFireOn)
+		if (autoFireOn) {
 			resting = false;
 			flash(0x39FF14, 8);
 			while (autoFireOn && !endGame) {
-			delay(50);
+				delay(50);
 			}
 			flashOn = false;
 			resting = true;
+		}
 
 		if (LEDbuttonToggle && !endGame) {
 			flash(0xFF800D, 1);
@@ -457,7 +456,7 @@ void nearsideRush() {
 	chassis.moveTo(-9, -9.5, 31, 2500, false, true, 35);
 	delay(300);
 
-	// back up wtih triball and move to match load bar
+	// back up with triball and move to match load bar
 	driveMove(-70);
 	delay(900);
 	driveMove(0);
@@ -734,7 +733,7 @@ void opcontrol() {
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
   
-  // reset old varaibles
+  // reset old variables
 	autoFireOn = false;
 	blockerUp = false;
 	autoLower = true;
@@ -849,7 +848,7 @@ void opcontrol() {
 		move = Controller1.get_analog(ANALOG_LEFT_Y);
 		turn = Controller1.get_analog(ANALOG_RIGHT_X);
      
-    if (drive < 50) {
+    if (move < 50) {
 			turn *= 1.3;
 		}
     
