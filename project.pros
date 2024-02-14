@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "Emu2G",
+    "project_name": "Emu2",
     "target": "v5",
     "templates": {
       "LemLib": {
@@ -351,7 +351,8 @@
     },
     "upload_options": {
       "icon": "X",
-      "slot": 5
+      "slot": 1,
+      "description": "96504P Main Code"
     }
   }
 }
