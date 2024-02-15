@@ -45,13 +45,14 @@ bool competitionMode = false;
 bool driveControlStarted = false;
 bool disabledMode = false;
 bool endGame = false;
-bool autoFireOn;
+bool autoFireOn = false;
+bool autoHangOn = false;
 
 Controller Controller1(CONTROLLER_MASTER);
 Controller Controller2(CONTROLLER_PARTNER);
 
 Optical OPT1(4);
-Optical OPT2(9);
+Distance DIST(9);
 
 Imu Inr(8);
 
@@ -62,6 +63,7 @@ bool flashOn = false;
 bool sparkOn = false;
 std::vector<uint32_t> colors;
 u_int32_t tempColor;
+u_int32_t tempColor2;
 int speed;
 bool LEDbuttonToggle = false;
 
@@ -130,7 +132,7 @@ bool triballOnKicker() {
 }
 
 bool cataInReadyPosition() {
-	if (OPT2.get_proximity() > 40) {return true;}
+	if (DIST.get() < 10) {return true;}
 	return false;
 }
 
@@ -155,11 +157,11 @@ void autoPuncher() {
 // if toggled on, automatically lower/ready cata
 void autoReady() {
 	while (true) {
-		while (autoLower && !autoFireOn) {
-			
-			if (!cataInReadyPosition()) {CR.move(100);} // if statement not required but maybe better?
-			else {CR.move(0);}
-			delay(10);
+		if (autoLower && !autoFireOn) {
+			CR.move(100);
+			while (!cataInReadyPosition()) {delay(10);} // if statement not required but maybe better?
+			CR.move(0);
+			autoLower = false;
 		}
 		delay(10);
 	}
@@ -175,12 +177,20 @@ void screenDisplay1() {
     }
 }
 
-void screenDisplay2() {
-    while (true) {
-        lcd::print(0, "hue: %f", OPT2.get_hue()); 
-		lcd::print(1, "distance: %d", OPT2.get_proximity()); 
-		delay(10);
-    }
+void autoHang() {
+	while(true) {
+		if (autoHangOn) {
+			autoLower = true;
+			autoFireOn = false;
+			delay(500);
+			autoLower = false;
+			CR.move(110);
+			delay(300);
+			CR.move(0);
+			autoHangOn = !autoHangOn;
+		}
+		delay(100);
+	}
 }
 
 void controllerScreen() {
@@ -277,11 +287,12 @@ void flow(uint32_t color1, u_int32_t color2) {
 	colors = genGradient(color1, color2, driveLeds.length());
 }
 
-void flash(uint32_t color, int flashSpeed){
+void flash(uint32_t color, int flashSpeed, u_int32_t color2 = 0x000000){
 	flashOn = true;
 	flowOn = false;
 	sparkOn = false;
 	tempColor = color;
+	tempColor2 = color2;
 	speed = flashSpeed;
 }
 
@@ -310,14 +321,14 @@ void LEDmainLoop() {
 			std::rotate(colors.begin(), colors.begin()+1, colors.end());
 		}
 
-		if (flashOn) {
+		else if (flashOn) {
 			set_all(tempColor);
 			delay(speed*100);
-			set_all(0x000000);
+			set_all(tempColor2);
 			delay(speed*100);
 		}
 
-		if (sparkOn) {
+		else if (sparkOn) {
 			sparkOn = false;
 			for (int i = 0; i < driveLeds.length(); ++i) {
 				set_pixel(tempColor, i);
@@ -329,50 +340,55 @@ void LEDmainLoop() {
 	}
 }
 
-bool resting = false;
-void RGBcontrol() {
-	while(true && !endGame) {
-		if (autoFireOn) {
-			resting = false;
-			flash(0x39FF14, 8);
-			while (autoFireOn && !endGame) {
-				delay(50);
-			}
-			flashOn = false;
-			resting = true;
-		}
-
-		if (LEDbuttonToggle && !endGame) {
-			flash(0xFF800D, 1);
-			resting = false;
-			while (LEDbuttonToggle) {
-			delay(50);
-			}
-			flashOn = false;
-			resting = true;
-		}
-
-		else if (resting) {
-			flow(0xFFFFFF, 0xFF00FF);
-			delay(50);
-			flowOn = false;
-			resting = false;
-		}
-	}
-
-	if (endGame) {
-		flash(0xE9D502, 5);
-		delay(15000); // 15 seconds left
-		flash(0xD22730, 3);
-		endGame = false;
-	}
-	
-	delay(10);
-}
-
 void competitionTimerStuff() {
 	delay(75000); // 30 seconds left
 	endGame = true;
+}
+
+bool resting = false;
+void RGBcontrol() {
+	while(true) {
+
+		if (!endGame) {
+
+			if (autoFireOn) {
+				resting = false;
+				flash(0x39FF14, 8);
+				while (autoFireOn && !endGame) {
+					delay(50);
+				}
+				flashOn = false;
+				resting = true;
+			}
+
+			else if (INT.get_actual_velocity() > 100 ) {
+				resting = false;
+				flash(0x1F51FF, 1);
+				while (INT.get_actual_velocity() > 100) {
+					delay(50);
+				}
+				flashOn = false;
+				resting = true;
+			}
+
+			else if (resting) {
+				flow(0xFFFFFF, 0xFF00FF);
+				delay(50);
+				resting = false;
+			}
+	}
+
+	if (competitionMode && endGame) {
+		flash(0xE9D502, 5);
+		delay(15000); // 15 seconds left
+		flash(0xD22730, 3);
+		delay(15000);
+		endGame = false;
+		Task competitionTimerTask(competitionTimerStuff);
+	}
+	
+	delay(10);
+	}
 }
 
 /*****************************************
@@ -443,14 +459,14 @@ void nearsideSafe() {
 }
 
 void nearsideRush() {
-	chassis.setPose(-45, -55, 48);
+	chassis.setPose(-47, -53, 43);
 
-	// hit alliance triball toward goal with left wing
+	// hit alliance triball toward goal with right win
 	rightWing.set_value(1);
 
-	// grab central far triball
+	// grab central far triball, turn and score both central and central far
 	INT.move(127);
-	chassis.moveTo(-9, -9.5, 31, 300, false, true, 35);
+	chassis.moveTo(-9, -9.5, 31, 200, false, true, 20);
 	autoFireOn = true;
 	rightWing.set_value(0);
 	chassis.moveTo(-9, -9.5, 31, 2500, false, true, 35);
@@ -528,7 +544,7 @@ void sixBallMidrush() {
 
 	// grab 6 ball
 	INT.move(127);
-	chassis.moveTo(12, -54, 270, 2500, false, true, 25);
+	chassis.moveTo(10, -54, 270, 2500, false, true, 25);
 
 	// move back
 	chassis.moveTo(40, -54, 270, 2500, false, false, 25);
@@ -644,9 +660,8 @@ void skills2() {
 void initialize() {
 	chassis.calibrate();
 	lcd::initialize();
-  selector::init();
+  	selector::init();
 	OPT1.set_led_pwm(30);
-	OPT2.set_led_pwm(30);
 	autoFireOn = true;
 	//Task brainScreen(screenDisplay1)
 	//Task controllerScreenTask(controllerScreen);
@@ -655,6 +670,7 @@ void initialize() {
 	Task ledUpdaterTask(ledUpdater);
 	Task leds(LEDmainLoop);
 	Task rgbcontrolTask(RGBcontrol);
+	Task autoHangTask(autoHang);
 }
 
 /**
@@ -724,7 +740,7 @@ void opcontrol() {
 
 	//Task brainScreen(screenDisplay1);
 	Task controllerScreenTask(controllerScreen);
-  Task competitionTimerTask(competitionTimerStuff);
+  	Task competitionTimerTask(competitionTimerStuff);
 
 	if (competitionMode) {
 		LV_IMG_DECLARE(BrainScreenIdle);
@@ -811,14 +827,14 @@ void opcontrol() {
 			if (globalCataSpeed > 70) {globalCataSpeed -= 5;}
 		}
 
-		// increase cata speed with "LEFT" button
+		// increase cata speed with "RIGHT" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)) {
 			globalCataSpeed += 5;
 			if (globalCataSpeed < 125) {globalCataSpeed += 5;}
 		}
 
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_UP)) {
-			LEDbuttonToggle = !LEDbuttonToggle;
+			autoHangOn = true;
 		}
 
 		// toggle left wing with "L2" button
