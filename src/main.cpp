@@ -353,7 +353,7 @@ void RGBcontrol() {
 
 			if (autoFireOn) {
 				resting = false;
-				flash(0x39FF14, 8);
+				flash(0x39FF14, 6);
 				while (autoFireOn && !endGame) {
 					delay(50);
 				}
@@ -361,10 +361,10 @@ void RGBcontrol() {
 				resting = true;
 			}
 
-			else if (INT.get_actual_velocity() > 100 ) {
+			else if (abs(INT.get_actual_velocity()) > 100) {
 				resting = false;
-				flash(0x1F51FF, 1);
-				while (INT.get_actual_velocity() > 100) {
+				flash(0x1F51FF, 1, 0xFFFFFF);
+				while (abs(INT.get_actual_velocity()) > 100) {
 					delay(50);
 				}
 				flashOn = false;
