@@ -159,7 +159,7 @@ void autoReady() {
 	while (true) {
 		if (autoReadyOn && !autoFireOn) {
 			CR.move(100);
-			while (!cataInReadyPosition()) {delay(10);} // if statement not required but maybe better?
+			while (!cataInReadyPosition()) {delay(10);}
 			CR.move(0);
 			autoReadyOn = false;
 		}
@@ -754,8 +754,8 @@ void opcontrol() {
 	blockerUp = false;
 	autoReadyOn = true;
 	// initialize new variables
-  float moveSpeed = .9;
-  float turnSpeed = .5;
+  	float moveSpeed = .9;
+  	float turnSpeed = .5;
 	bool leftWingOut = false;
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
@@ -805,7 +805,7 @@ void opcontrol() {
 			autoFireOn = !autoFireOn;
 		}
 
-		// toggle autoLower with "Y" button
+		// toggle autoReadyOn with "Y" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
 			autoReadyOn = !autoReadyOn;
