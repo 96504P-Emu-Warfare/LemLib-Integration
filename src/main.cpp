@@ -34,8 +34,9 @@ MotorGroup rightMotors({BR, TR});
 
 ADIDigitalOut rightWing('A');
 ADIDigitalOut leftWing('B');
-ADIDigitalOut blocker('C');
-ADILed driveLeds(8, 27);
+ADILed frontLEDs(8, 27);
+ADILed leftDriveLEDs(5, 27);
+ADILed rightDriveLEDs(3, 27);
 
 bool blockerUp = false;
 int globalCataSpeed = 90;
@@ -213,8 +214,12 @@ void driveMove(int power) {
 
 void ledUpdater() {
 	while(true){
-		driveLeds.update();
-		delay(100);
+		frontLEDs.update();
+		delay(20);
+		rightDriveLEDs.update();
+		delay(20);
+		leftDriveLEDs.update();
+		delay(20);
 	}
 }
 
@@ -267,11 +272,15 @@ std::vector<uint32_t> genGradient(uint32_t startColor, uint32_t endColor, size_t
 
 // update if more led strands are added
 void set_pixel(u_int32_t color, int i) {
-	driveLeds[i] = color;
+	frontLEDs[i] = color;
+	leftDriveLEDs[i] = color;
+	rightDriveLEDs[i] = color;
 }
 
 void set_all(u_int32_t color) {
-	driveLeds.set_all(color);
+	frontLEDs.set_all(color);
+	leftDriveLEDs.set_all(color);
+	rightDriveLEDs.set_all(color);
 }
 
 void LEDclear() {
@@ -284,7 +293,7 @@ void flow(uint32_t color1, u_int32_t color2) {
 	flowOn = true;
 	flashOn = false;
 	sparkOn = false;
-	colors = genGradient(color1, color2, driveLeds.length());
+	colors = genGradient(color1, color2, 60);
 }
 
 void flash(uint32_t color, int flashSpeed, u_int32_t color2 = 0x000000){
@@ -310,12 +319,9 @@ void LEDmainLoop() {
 		if (flowOn) {
 
 			// loop through each pixel gets a color, update buffer, shift color matrix by 1, repeat
-			for (int i = 0; i < driveLeds.length(); ++i) {
+			for (int i = 0; i < 60; ++i) {
 				set_pixel(colors[i], i);
 			}
-
-			set_pixel(colors[1], 0);
-			set_pixel(colors[20], 1);
 			
 			// shift color vector
 			std::rotate(colors.begin(), colors.begin()+1, colors.end());
@@ -330,7 +336,7 @@ void LEDmainLoop() {
 
 		else if (sparkOn) {
 			sparkOn = false;
-			for (int i = 0; i < driveLeds.length(); ++i) {
+			for (int i = 0; i < 60; ++i) {
 				set_pixel(tempColor, i);
 				set_pixel(tempColor, i);
 			}
@@ -749,13 +755,13 @@ void opcontrol() {
 		lv_obj_align(img, NULL, LV_ALIGN_CENTER, 0, 0);
 	}
   
-  // reset old variables
+    // reset old variables
 	autoFireOn = false;
 	blockerUp = false;
 	autoLower = true;
 	// initialize new variables
-  float moveSpeed = .9;
-  float turnSpeed = .5;
+ 	float moveSpeed = .9;
+  	float turnSpeed = .5;
 	bool leftWingOut = false;
 	bool rightWingOut = false;
 	bool cataMotorOn = false;
@@ -811,10 +817,8 @@ void opcontrol() {
 			autoLower = !autoLower;
 		}
 
-		// toggle blocker with "X" button
+		// toggle _______ with "X" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_X)) {
-			blockerUp = !blockerUp;
-			blocker.set_value(blockerUp);
 		}
 
 		// for testing (not for match use); run selected autonomous with "DOWN" button
