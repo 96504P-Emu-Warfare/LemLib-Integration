@@ -41,7 +41,7 @@ ADILed rightDriveLEDs(3, 27);
 bool blockerUp = false;
 int globalCataSpeed = 90;
 int cataDelay = 10; // in ms
-bool autoLower;
+bool autoReadyOn;
 bool competitionMode = false;
 bool driveControlStarted = false;
 bool disabledMode = false;
@@ -158,11 +158,11 @@ void autoPuncher() {
 // if toggled on, automatically lower/ready cata
 void autoReady() {
 	while (true) {
-		if (autoLower && !autoFireOn) {
+		if (autoReadyOn && !autoFireOn) {
 			CR.move(100);
-			while (!cataInReadyPosition()) {delay(10);} // if statement not required but maybe better?
+			while (!cataInReadyPosition()) {delay(10);}
 			CR.move(0);
-			autoLower = false;
+			autoReadyOn = false;
 		}
 		delay(10);
 	}
@@ -181,10 +181,10 @@ void screenDisplay1() {
 void autoHang() {
 	while(true) {
 		if (autoHangOn) {
-			autoLower = true;
+			autoReadyOn = true;
 			autoFireOn = false;
 			delay(500);
-			autoLower = false;
+			autoReadyOn = false;
 			CR.move(110);
 			delay(300);
 			CR.move(0);
@@ -196,7 +196,7 @@ void autoHang() {
 
 void controllerScreen() {
 	while (true) {
-		Controller1.set_text(1,1, "CS:" + std::to_string(globalCataSpeed) + " AF:" + std::to_string(autoFireOn) + " L:" + std::to_string(autoLower));
+		Controller1.set_text(1,1, "CS:" + std::to_string(globalCataSpeed) + " AF:" + std::to_string(autoFireOn) + " L:" + std::to_string(autoReadyOn));
 		delay(100);
 	}
 }
@@ -367,10 +367,10 @@ void RGBcontrol() {
 				resting = true;
 			}
 
-			else if (abs(INT.get_actual_velocity()) > 100) {
+			else if (std::abs(INT.get_actual_velocity()) > 100) {
 				resting = false;
 				flash(0x1F51FF, 1, 0xFFFFFF);
-				while (abs(INT.get_actual_velocity()) > 100) {
+				while (std::abs(INT.get_actual_velocity()) > 100) {
 					delay(50);
 				}
 				flashOn = false;
@@ -758,7 +758,7 @@ void opcontrol() {
     // reset old variables
 	autoFireOn = false;
 	blockerUp = false;
-	autoLower = true;
+	autoReadyOn = true;
 	// initialize new variables
  	float moveSpeed = .9;
   	float turnSpeed = .5;
@@ -811,10 +811,10 @@ void opcontrol() {
 			autoFireOn = !autoFireOn;
 		}
 
-		// toggle autoLower with "Y" button
+		// toggle autoReadyOn with "Y" button
 		if (Controller1.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)) {
 			autoFireOn = false;
-			autoLower = !autoLower;
+			autoReadyOn = !autoReadyOn;
 		}
 
 		// toggle _______ with "X" button
