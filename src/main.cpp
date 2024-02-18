@@ -584,9 +584,9 @@ void skills() {
 	// turn and move backwards to other side
 	// pushing triballs along with robot
 	INT.move(-127);
-	chassis.turnTo(-19, -64, 1000, false, true);
-	chassis.moveTo(-19, -64, 285, 1000, false, false);
-	chassis.moveTo(39, -62, 270, 2000, false, false);
+	chassis.turnTo(-19, -61, 1000, false, true);
+	chassis.moveTo(-19, -61, 285, 1000, false, false);
+	chassis.moveTo(39, -61, 270, 2000, false, false);
 
 	// backwards push corner triballs into goal
 	chassis.turnTo(61, -43, 1000, false, true);
@@ -603,7 +603,7 @@ void skills() {
 	// deploying wings on way to collect triballs
 	chassis.turnTo(11, -34, 1000);
 	chassis.moveTo(11, -34, -75, 1500);
-	chassis.moveTo(11, -21, 0, 1500);
+	chassis.moveTo(10, -21, 0, 1500);
 
 	// first front push 
 	chassis.turnTo(48, -10, 1000);
@@ -635,6 +635,17 @@ void skills() {
 	driveMove(-60);
 	delay(700);
 	driveMove(0);
+	leftWing.set_value(1);
+	rightWing.set_value(1);
+	delay(100);
+	driveMove(100);
+	delay(700);
+	leftWing.set_value(0);
+	rightWing.set_value(0);
+	driveMove(-40);
+	delay(500);
+	driveMove(0);
+
 
 }
 
